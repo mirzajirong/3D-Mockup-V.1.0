@@ -23,17 +23,17 @@ export const ScenePanel: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-3 p-4 text-white overflow-y-auto max-h-full font-geist">
+    <div className="flex flex-col gap-3 p-4 text-[#FFFFFF] overflow-y-auto max-h-full font-geist">
       {/* 1. Wall Setting (On / Off) */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-3">
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">Backdrop Wall</span>
+          <span className="text-xs font-semibold text-[#FFFFFF]">Backdrop Wall</span>
 
           {/* Toggle Switch */}
           <div className="flex items-center gap-2.5">
             <span
               className={`text-[11px] font-mono uppercase tracking-wider font-semibold transition-colors select-none ${
-                scene.showWall ? 'text-[#DB0B2B]' : 'text-[#666666]'
+                scene.showWall ? 'text-[#DB0B2B]' : 'text-[#888888]'
               }`}
             >
               {scene.showWall ? 'ON' : 'OFF'}
@@ -48,15 +48,15 @@ export const ScenePanel: React.FC = () => {
         </div>
 
         {scene.showWall && (
-          <div className="space-y-2.5 pt-1 border-t border-white/5">
+          <div className="space-y-2.5 pt-1 border-t border-white/10">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#aaaaaa]">Wall Surface Color</span>
-              <label className="relative flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-[4px] border border-white/10 cursor-pointer transition-colors">
+              <span className="text-xs text-[#CCCCCC]">Wall Surface Color</span>
+              <label className="relative flex items-center gap-2 bg-[#181818] hover:bg-[#1E1E1E] px-2.5 py-1 rounded-[4px] border border-white/10 hover:border-white/15 cursor-pointer transition-colors">
                 <span
                   className="w-3.5 h-3.5 rounded-[2px] border border-white/20 shrink-0"
                   style={{ backgroundColor: scene.wallColor || '#101010' }}
                 />
-                <span className="font-mono text-xs text-white uppercase tracking-wider">
+                <span className="font-mono text-xs text-[#FFFFFF] uppercase tracking-wider">
                   {scene.wallColor || '#101010'}
                 </span>
                 <input
@@ -78,8 +78,8 @@ export const ScenePanel: React.FC = () => {
                   onClick={() => updateScene({ wallColor: p.color })}
                   className={`h-6 rounded-[3px] border transition-all cursor-pointer ${
                     (scene.wallColor || '#101010').toLowerCase() === p.color.toLowerCase()
-                      ? 'border-[#DB0B2B] scale-105 shadow-xs'
-                      : 'border-[#2d2d2d] hover:border-[#555555]'
+                      ? 'border-[#DB0B2B] scale-105'
+                      : 'border-white/10 hover:border-white/20'
                   }`}
                   style={{ backgroundColor: p.color }}
                 />
@@ -90,15 +90,15 @@ export const ScenePanel: React.FC = () => {
       </div>
 
       {/* 2. Floor Setting (On / Off) */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-3">
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">Studio Floor</span>
+          <span className="text-xs font-semibold text-[#FFFFFF]">Studio Floor</span>
 
           {/* Toggle Switch */}
           <div className="flex items-center gap-2.5">
             <span
               className={`text-[11px] font-mono uppercase tracking-wider font-semibold transition-colors select-none ${
-                scene.showFloor ? 'text-[#DB0B2B]' : 'text-[#666666]'
+                scene.showFloor ? 'text-[#DB0B2B]' : 'text-[#888888]'
               }`}
             >
               {scene.showFloor ? 'ON' : 'OFF'}
@@ -113,15 +113,15 @@ export const ScenePanel: React.FC = () => {
         </div>
 
         {scene.showFloor && (
-          <div className="space-y-2.5 pt-1 border-t border-[#1e1e1e]">
+          <div className="space-y-2.5 pt-1 border-t border-white/10">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-[#aaaaaa]">Floor Surface Color</span>
-              <label className="relative flex items-center gap-2 bg-[#181818] hover:bg-[#202020] px-2.5 py-1 rounded-[4px] border border-[#2e2e2e] cursor-pointer transition-colors">
+              <span className="text-xs text-[#CCCCCC]">Floor Surface Color</span>
+              <label className="relative flex items-center gap-2 bg-[#181818] hover:bg-[#1E1E1E] px-2.5 py-1 rounded-[4px] border border-white/10 hover:border-white/15 cursor-pointer transition-colors">
                 <span
-                  className="w-3.5 h-3.5 rounded-[2px] border border-[#444444] shrink-0"
+                  className="w-3.5 h-3.5 rounded-[2px] border border-white/20 shrink-0"
                   style={{ backgroundColor: scene.floorColor || '#0a0a0a' }}
                 />
-                <span className="font-mono text-xs text-white uppercase tracking-wider">
+                <span className="font-mono text-xs text-[#FFFFFF] uppercase tracking-wider">
                   {scene.floorColor || '#0a0a0a'}
                 </span>
                 <input
@@ -143,8 +143,8 @@ export const ScenePanel: React.FC = () => {
                   onClick={() => updateScene({ floorColor: p.color })}
                   className={`h-6 rounded-[3px] border transition-all cursor-pointer ${
                     (scene.floorColor || '#0a0a0a').toLowerCase() === p.color.toLowerCase()
-                      ? 'border-[#DB0B2B] scale-105 shadow-xs'
-                      : 'border-[#2d2d2d] hover:border-[#555555]'
+                      ? 'border-[#DB0B2B] scale-105'
+                      : 'border-white/10 hover:border-white/20'
                   }`}
                   style={{ backgroundColor: p.color }}
                 />

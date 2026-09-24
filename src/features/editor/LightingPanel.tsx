@@ -17,10 +17,10 @@ export const LightingPanel: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-3 p-4 text-white overflow-y-auto max-h-full font-geist">
+    <div className="flex flex-col gap-3 p-4 text-[#FFFFFF] overflow-y-auto max-h-full font-geist">
       {/* 1. Lighting Parameters (Intensity and Light Angle) */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-3">
-        <div className="text-[11px] font-bold text-[#cccccc] uppercase tracking-wider font-sora">
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-3">
+        <div className="text-[11px] font-bold text-[#CCCCCC] uppercase tracking-wider font-sora">
           LIGHT CONTROLS
         </div>
 
@@ -56,8 +56,8 @@ export const LightingPanel: React.FC = () => {
               onClick={() => updateScene({ lightAngle: angle })}
               className={`py-1 text-[11px] font-mono rounded-[4px] border transition-colors cursor-pointer ${
                 Math.round(scene.lightAngle ?? 45) === angle
-                  ? 'bg-[#DB0B2B] text-white border-[#DB0B2B] shadow-xs'
-                  : 'bg-white/5 text-[#888888] border-white/10 hover:text-white hover:bg-white/10'
+                  ? 'bg-[#DB0B2B] text-[#FFFFFF] border-[#DB0B2B]'
+                  : 'bg-[#181818] text-[#888888] border-white/10 hover:text-[#FFFFFF] hover:bg-[#1E1E1E]'
               }`}
             >
               {angle}°
@@ -66,11 +66,11 @@ export const LightingPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Lighting Rig Presets Dropdown (Without any icon) */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-2">
+      {/* 2. Lighting Rig Presets Dropdown */}
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-2">
         <label
           htmlFor="lighting-rig-select"
-          className="text-[11px] font-bold text-[#cccccc] uppercase tracking-wider block font-sora"
+          className="text-[11px] font-bold text-[#CCCCCC] uppercase tracking-wider block font-sora"
         >
           LIGHTING RIG PRESET
         </label>
@@ -82,10 +82,10 @@ export const LightingPanel: React.FC = () => {
             onChange={(e) =>
               updateScene({ lightingPreset: e.target.value as LightingPreset })
             }
-            className="w-full bg-black/60 hover:bg-black/80 border border-white/15 focus:border-[#DB0B2B] text-white text-xs rounded-[4px] px-3 py-2 pr-8 focus:outline-hidden appearance-none cursor-pointer transition-colors backdrop-blur-md"
+            className="w-full bg-[#181818] hover:bg-[#1E1E1E] border border-white/15 focus:border-[#DB0B2B] text-[#FFFFFF] text-xs rounded-[4px] px-3 py-2 pr-8 focus:outline-hidden appearance-none cursor-pointer transition-colors"
           >
             {presets.map((p) => (
-              <option key={p.id} value={p.id} className="bg-[#121212] text-white">
+              <option key={p.id} value={p.id} className="bg-[#181818] text-[#FFFFFF]">
                 {p.label}
               </option>
             ))}

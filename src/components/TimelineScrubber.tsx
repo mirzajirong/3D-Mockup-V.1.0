@@ -59,7 +59,7 @@ export const TimelineScrubber: React.FC = () => {
 
   return (
     <div className="absolute bottom-3 left-4 right-4 z-20 select-none font-geist">
-      <div className="bg-black/50 backdrop-blur-2xl rounded-[4px] border border-white/15 px-3 py-1.5 flex items-center justify-between gap-3 shadow-2xl">
+      <div className="bg-[#0A0A0A] rounded-[4px] border border-white/15 px-3 py-1.5 flex items-center justify-between gap-3 shadow-2xl">
         {/* Left: Play/Pause, Easing Presets, FPS Controls */}
         <div className="flex items-center gap-2">
           {/* Play / Pause Toggle */}
@@ -67,7 +67,7 @@ export const TimelineScrubber: React.FC = () => {
             id="timeline-play-btn"
             type="button"
             onClick={() => setIsPlayingTurntable(!isPlayingTurntable)}
-            className="w-7 h-7 rounded-[4px] bg-white/5 hover:bg-white/10 active:bg-white/5 text-white flex items-center justify-center transition-colors border border-white/10 cursor-pointer backdrop-blur-md"
+            className="w-7 h-7 rounded-[4px] bg-[#141414] hover:bg-[#181818] active:bg-[#141414] text-[#FFFFFF] flex items-center justify-center transition-colors border border-white/10 hover:border-white/15 cursor-pointer"
             title={isPlayingTurntable ? 'Pause' : 'Play Turntable'}
           >
             {isPlayingTurntable ? (
@@ -78,7 +78,7 @@ export const TimelineScrubber: React.FC = () => {
           </button>
 
           {/* Easing Presets: in, out, in out, linear */}
-          <div className="flex items-center bg-black/40 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+          <div className="flex items-center bg-[#141414] p-0.5 rounded-[4px] border border-white/10">
             {easingOptions.map((opt) => (
               <button
                 key={opt.id}
@@ -86,8 +86,8 @@ export const TimelineScrubber: React.FC = () => {
                 onClick={() => setAnimationEasing(opt.id)}
                 className={`px-2 py-0.5 text-[11px] rounded-[3px] font-medium transition-all cursor-pointer ${
                   animationEasing === opt.id
-                    ? 'bg-[#DB0B2B] text-white font-semibold shadow-xs'
-                    : 'text-[#888888] hover:text-white hover:bg-white/10'
+                    ? 'bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820] text-[#FFFFFF] font-semibold'
+                    : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                 }`}
                 title={`Easing preset: ${opt.label}`}
               >
@@ -97,7 +97,7 @@ export const TimelineScrubber: React.FC = () => {
           </div>
 
           {/* FPS selector: 60 fps, 30 fps, 25 fps */}
-          <div className="flex items-center bg-black/40 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+          <div className="flex items-center bg-[#141414] p-0.5 rounded-[4px] border border-white/10">
             {fpsOptions.map((rate) => (
               <button
                 key={rate}
@@ -105,8 +105,8 @@ export const TimelineScrubber: React.FC = () => {
                 onClick={() => setAnimationFps(rate)}
                 className={`px-1.5 py-0.5 text-[11px] font-mono rounded-[3px] font-medium transition-all cursor-pointer ${
                   animationFps === rate
-                    ? 'bg-white/20 text-white font-semibold border border-white/20 shadow-xs'
-                    : 'text-[#888888] hover:text-white hover:bg-white/10'
+                    ? 'bg-[#1E1E1E] text-[#FFFFFF] font-semibold border border-white/15'
+                    : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                 }`}
                 title={`Frame rate: ${rate} FPS`}
               >
@@ -130,21 +130,21 @@ export const TimelineScrubber: React.FC = () => {
           />
         </div>
 
-        {/* Right: RESET Button (Replacing Capture button) */}
+        {/* Right: RESET Button */}
         <div className="flex items-center">
           <button
             id="timeline-reset-btn"
             type="button"
             onClick={handleResetClick}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-semibold font-sora border transition-all cursor-pointer select-none backdrop-blur-md ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[4px] text-xs font-semibold font-sora border transition-all cursor-pointer select-none ${
               resetClicked
-                ? 'bg-[#DB0B2B] text-white border-[#DB0B2B] scale-105 shadow-md shadow-[#DB0B2B]/30'
-                : 'bg-white/5 hover:bg-white/10 active:bg-white/5 text-[#e0e0e0] hover:text-white border-white/10'
+                ? 'bg-[#DB0B2B] text-[#FFFFFF] border-[#DB0B2B] scale-105'
+                : 'bg-[#141414] hover:bg-[#181818] active:bg-[#141414] text-[#CCCCCC] hover:text-[#FFFFFF] border-white/10 hover:border-white/15'
             }`}
             title="Reset 3D Model position to Front"
           >
             {resetClicked ? (
-              <CheckIcon className="w-3.5 h-3.5 text-white animate-pulse" />
+              <CheckIcon className="w-3.5 h-3.5 text-[#FFFFFF] animate-pulse" />
             ) : (
               <ArrowPathIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
             )}

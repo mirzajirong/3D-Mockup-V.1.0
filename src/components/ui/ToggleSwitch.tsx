@@ -33,8 +33,8 @@ export const ToggleSwitch: React.FC<ToggleSwitchProps> = ({
         disabled ? 'opacity-40 cursor-not-allowed' : ''
       } ${
         checked
-          ? 'bg-[#DB0B2B] shadow-[0_0_12px_rgba(219,11,43,0.35)]'
-          : 'bg-[#1e1e1e] border border-[#333333] hover:border-[#444444]'
+          ? 'bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820]'
+          : 'bg-[#181818] border border-white/15 hover:border-white/20'
       }`}
       title={label || (checked ? 'Turn OFF' : 'Turn ON')}
     >

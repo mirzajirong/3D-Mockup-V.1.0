@@ -10,6 +10,7 @@ import {
   TrashIcon, 
   CheckIcon, 
 } from '@heroicons/react/24/outline';
+import { APP_CONFIG } from '../../config/constants';
 
 interface MockUser {
   id: string;
@@ -42,8 +43,7 @@ export const AdminDashboardModal: React.FC = () => {
   const adminDashboardOpen = useEditorStore((s) => s.adminDashboardOpen);
   const setAdminDashboardOpen = useEditorStore((s) => s.setAdminDashboardOpen);
 
-  const [activeTab, setActiveTab] = useState<'users' | 'payments' | 'models'>('models');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'models' | 'users' | 'payments'>('models');
 
   // Sample admin datasets
   const [usersList, setUsersList] = useState<MockUser[]>([
@@ -60,11 +60,11 @@ export const AdminDashboardModal: React.FC = () => {
   ]);
 
   const [modelsList, setModelsList] = useState<MockModelItem[]>([
-    { id: 'mod_01', name: 'O-Neck Classic Jersey', category: 'T-Shirt', fileSize: '4.2 MB', status: 'Free', active: true },
-    { id: 'mod_02', name: 'V-Neck Athletic Jersey', category: 'Jersey', fileSize: '4.8 MB', status: 'Free', active: true },
-    { id: 'mod_03', name: 'Polo Performance Jersey', category: 'Polo', fileSize: '5.6 MB', status: 'Pro', active: true },
-    { id: 'mod_04', name: 'Long Sleeve Raglan Jersey', category: 'Long Sleeve', fileSize: '6.1 MB', status: 'Pro', active: true },
-    { id: 'mod_05', name: 'Streetwear Heavyweight Hoodie', category: 'Hoodie', fileSize: '8.4 MB', status: 'Pro', active: true },
+    { id: 'mod_01', name: '01. O-Neck Classic Jersey', category: 'T-Shirt', fileSize: '4.2 MB', status: 'Free', active: true },
+    { id: 'mod_02', name: '02. V-Neck Athletic Jersey', category: 'Jersey', fileSize: '4.8 MB', status: 'Free', active: true },
+    { id: 'mod_03', name: '03. Polo Performance Jersey', category: 'Polo', fileSize: '5.6 MB', status: 'Pro', active: true },
+    { id: 'mod_04', name: '04. Long Sleeve Raglan Jersey', category: 'Long Sleeve', fileSize: '6.1 MB', status: 'Pro', active: true },
+    { id: 'mod_05', name: '05. Streetwear Heavyweight Hoodie', category: 'Hoodie', fileSize: '8.4 MB', status: 'Pro', active: true },
   ]);
 
   // Form state for uploading a new 3D model
@@ -97,105 +97,115 @@ export const AdminDashboardModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 select-none animate-in fade-in duration-200 font-geist">
-      <div className="w-full max-w-4xl bg-[#141414] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 select-none animate-in fade-in duration-200">
+      <div className="w-full max-w-4xl bg-[#0A0A0A] border border-white/15 rounded-[6px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-[#222222]">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#DB0B2B] flex items-center justify-center text-white">
-              <ShieldCheckIcon className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-white font-sora">
-                Editor Suite Admin Panel
-              </h2>
-              <p className="text-xs text-[#888888]">
-                Sistem Manajemen User, Transaksi & GLTF Model Library
-              </p>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#000000]">
+          <div className="flex items-center gap-3">
+            <img
+              src={APP_CONFIG.assets.logo}
+              alt="Editor Suite"
+              className="w-7 h-7 rounded-[3px] object-contain shrink-0"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-[#FFFFFF] tracking-wider font-sora">
+                  ADMIN CONSOLE
+                </span>
+                <span className="text-[10px] text-[#DB0B2B] font-mono font-bold">
+                  MANAGEMENT
+                </span>
+              </div>
+              <span className="text-[10px] text-[#888888] font-medium tracking-tight">
+                {APP_CONFIG.tagline}
+              </span>
             </div>
           </div>
+
           <button
             type="button"
             onClick={() => setAdminDashboardOpen(false)}
-            className="p-1 rounded-lg text-[#777777] hover:text-white hover:bg-[#202020] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-[4px] border border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] transition-colors cursor-pointer"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 px-6 pt-3 border-b border-[#222222] bg-[#121212]">
-          <button
-            type="button"
-            onClick={() => setActiveTab('models')}
-            className={`flex items-center gap-2 pb-3 px-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'models'
-                ? 'border-[#DB0B2B] text-white'
-                : 'border-transparent text-[#777777] hover:text-[#cccccc]'
-            }`}
-          >
-            <CubeIcon className="w-4 h-4 text-[#DB0B2B]" />
-            <span>3D Model Manager ({modelsList.length})</span>
-          </button>
+        <div className="px-6 pt-3 pb-2 bg-[#0A0A0A] border-b border-white/10">
+          <div className="flex items-center gap-1 p-1 bg-[#141414] rounded-[4px] border border-white/10">
+            <button
+              type="button"
+              onClick={() => setActiveTab('models')}
+              className={`flex-1 py-1.5 px-3 rounded-[3px] text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 font-sora ${
+                activeTab === 'models'
+                  ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                  : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] border border-transparent'
+              }`}
+            >
+              <CubeIcon className={`w-3.5 h-3.5 ${activeTab === 'models' ? 'text-[#DB0B2B]' : 'text-current'}`} />
+              <span>3D Models ({modelsList.length})</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 pb-3 px-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'users'
-                ? 'border-[#DB0B2B] text-white'
-                : 'border-transparent text-[#777777] hover:text-[#cccccc]'
-            }`}
-          >
-            <UsersIcon className="w-4 h-4 text-[#DB0B2B]" />
-            <span>User Management ({usersList.length})</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('users')}
+              className={`flex-1 py-1.5 px-3 rounded-[3px] text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 font-sora ${
+                activeTab === 'users'
+                  ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                  : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] border border-transparent'
+              }`}
+            >
+              <UsersIcon className={`w-3.5 h-3.5 ${activeTab === 'users' ? 'text-[#DB0B2B]' : 'text-current'}`} />
+              <span>Users ({usersList.length})</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('payments')}
-            className={`flex items-center gap-2 pb-3 px-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === 'payments'
-                ? 'border-[#DB0B2B] text-white'
-                : 'border-transparent text-[#777777] hover:text-[#cccccc]'
-            }`}
-          >
-            <CreditCardIcon className="w-4 h-4 text-[#DB0B2B]" />
-            <span>Billing Transactions ({paymentsList.length})</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('payments')}
+              className={`flex-1 py-1.5 px-3 rounded-[3px] text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-1.5 font-sora ${
+                activeTab === 'payments'
+                  ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                  : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] border border-transparent'
+              }`}
+            >
+              <CreditCardIcon className={`w-3.5 h-3.5 ${activeTab === 'payments' ? 'text-[#DB0B2B]' : 'text-current'}`} />
+              <span>Billing ({paymentsList.length})</span>
+            </button>
+          </div>
         </div>
 
         {/* Body Area */}
         <div className="p-6 overflow-y-auto space-y-6">
           {/* TAB 1: 3D MODEL MANAGER */}
           {activeTab === 'models' && (
-            <div className="space-y-6">
+            <div className="space-y-5">
               {/* Upload GLB Form */}
-              <div className="p-4 rounded-xl bg-[#181818] border border-[#282828] space-y-4">
+              <div className="p-4 rounded-[4px] bg-[#141414] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5 font-sora">
+                  <h3 className="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider flex items-center gap-1.5 font-sora">
                     <ArrowUpTrayIcon className="w-4 h-4 text-[#DB0B2B]" />
-                    <span>Upload & Daftarkan 3D Model Baru (.GLB / .GLTF)</span>
+                    <span>Upload & Daftarkan 3D Garment Baru (.GLB / .GLTF)</span>
                   </h3>
                   {uploadSuccessMessage && (
-                    <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-                      <CheckIcon className="w-3.5 h-3.5" /> Model Berhasil Ditambahkan!
+                    <span className="text-xs text-[#10B981] font-medium flex items-center gap-1">
+                      <CheckIcon className="w-3.5 h-3.5" /> Model Berhasil Ditambahkan
                     </span>
                   )}
                 </div>
 
-                <form onSubmit={handleAddModel} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <form onSubmit={handleAddModel} className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
                   <div className="sm:col-span-2">
                     <label className="text-[11px] text-[#888888] block mb-1">
                       Model Title
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. 2026 World Cup Soccer Jersey"
+                      placeholder="e.g. 06. Windbreaker Sport Jacket"
                       value={newModelName}
                       onChange={(e) => setNewModelName(e.target.value)}
                       required
-                      className="w-full bg-[#1e1e1e] border border-[#2f2f2f] focus:border-[#DB0B2B] rounded-lg px-3 py-2 text-xs text-white outline-none"
+                      className="w-full bg-[#181818] border border-white/15 focus:border-[#DB0B2B] rounded-[4px] px-3 py-1.5 text-xs text-[#FFFFFF] outline-none"
                     />
                   </div>
 
@@ -206,13 +216,13 @@ export const AdminDashboardModal: React.FC = () => {
                     <select
                       value={newModelCategory}
                       onChange={(e) => setNewModelCategory(e.target.value)}
-                      className="w-full bg-[#1e1e1e] border border-[#2f2f2f] rounded-lg px-3 py-2 text-xs text-white outline-none"
+                      className="w-full bg-[#181818] border border-white/15 rounded-[4px] px-3 py-1.5 text-xs text-[#FFFFFF] outline-none cursor-pointer"
                     >
                       <option value="Jersey">Jersey</option>
                       <option value="T-Shirt">T-Shirt</option>
                       <option value="Polo">Polo</option>
                       <option value="Hoodie">Hoodie</option>
-                      <option value="Sportswear">Sportswear</option>
+                      <option value="Outerwear">Outerwear</option>
                     </select>
                   </div>
 
@@ -224,7 +234,7 @@ export const AdminDashboardModal: React.FC = () => {
                       <select
                         value={newModelStatus}
                         onChange={(e) => setNewModelStatus(e.target.value as 'Free' | 'Pro')}
-                        className="flex-1 bg-[#1e1e1e] border border-[#2f2f2f] rounded-lg px-3 py-2 text-xs text-white outline-none"
+                        className="flex-1 bg-[#181818] border border-white/15 rounded-[4px] px-2.5 py-1.5 text-xs text-[#FFFFFF] outline-none cursor-pointer"
                       >
                         <option value="Free">Free</option>
                         <option value="Pro">Pro Only</option>
@@ -232,9 +242,9 @@ export const AdminDashboardModal: React.FC = () => {
 
                       <button
                         type="submit"
-                        className="py-2 px-3 rounded-lg bg-[#DB0B2B] hover:bg-[#f01436] text-white text-xs font-bold transition-all shadow-md shadow-[#DB0B2B]/20 shrink-0 cursor-pointer"
+                        className="py-1.5 px-3 rounded-[4px] bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820] text-[#FFFFFF] text-xs font-bold transition-all shrink-0 cursor-pointer font-sora"
                       >
-                        Add Model
+                        Add
                       </button>
                     </div>
                   </div>
@@ -242,9 +252,9 @@ export const AdminDashboardModal: React.FC = () => {
               </div>
 
               {/* Models Table */}
-              <div className="border border-[#262626] rounded-xl overflow-hidden">
+              <div className="border border-white/10 rounded-[4px] overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#181818] text-[#888888] uppercase tracking-wider text-[10px] border-b border-[#262626]">
+                  <thead className="bg-[#000000] text-[#888888] uppercase tracking-wider text-[10px] border-b border-white/10">
                     <tr>
                       <th className="p-3">Model Name</th>
                       <th className="p-3">Category</th>
@@ -253,21 +263,21 @@ export const AdminDashboardModal: React.FC = () => {
                       <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#222222] bg-[#141414]">
+                  <tbody className="divide-y divide-white/5 bg-[#141414]">
                     {modelsList.map((m) => (
-                      <tr key={m.id} className="hover:bg-[#1a1a1a] transition-colors">
-                        <td className="p-3 font-medium text-white flex items-center gap-2">
+                      <tr key={m.id} className="hover:bg-[#181818] transition-colors">
+                        <td className="p-3 font-medium text-[#FFFFFF] flex items-center gap-2">
                           <CubeIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                          <span>{m.name}</span>
+                          <span className="font-sora">{m.name}</span>
                         </td>
-                        <td className="p-3 text-[#aaaaaa]">{m.category}</td>
+                        <td className="p-3 text-[#CCCCCC]">{m.category}</td>
                         <td className="p-3 font-mono text-[#888888]">{m.fileSize}</td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            className={`px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold font-sora ${
                               m.status === 'Pro'
-                                ? 'bg-[#DB0B2B]/20 text-[#DB0B2B] border border-[#DB0B2B]/40'
-                                : 'bg-[#222222] text-green-400'
+                                ? 'bg-[#DB0B2B]/15 text-[#DB0B2B] border border-[#DB0B2B]/40'
+                                : 'bg-[#181818] text-[#CCCCCC]'
                             }`}
                           >
                             {m.status}
@@ -279,7 +289,7 @@ export const AdminDashboardModal: React.FC = () => {
                             onClick={() =>
                               setModelsList(modelsList.filter((item) => item.id !== m.id))
                             }
-                            className="p-1 hover:text-[#DB0B2B] text-[#666666] transition-colors cursor-pointer"
+                            className="p-1 hover:text-[#DB0B2B] text-[#888888] transition-colors cursor-pointer"
                             title="Remove Model"
                           >
                             <TrashIcon className="w-3.5 h-3.5" />
@@ -296,9 +306,9 @@ export const AdminDashboardModal: React.FC = () => {
           {/* TAB 2: USER MANAGEMENT */}
           {activeTab === 'users' && (
             <div className="space-y-4">
-              <div className="border border-[#262626] rounded-xl overflow-hidden">
+              <div className="border border-white/10 rounded-[4px] overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#181818] text-[#888888] uppercase tracking-wider text-[10px] border-b border-[#262626]">
+                  <thead className="bg-[#000000] text-[#888888] uppercase tracking-wider text-[10px] border-b border-white/10">
                     <tr>
                       <th className="p-3">User</th>
                       <th className="p-3">Subscription</th>
@@ -307,26 +317,26 @@ export const AdminDashboardModal: React.FC = () => {
                       <th className="p-3 text-right">Tier Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#222222] bg-[#141414]">
+                  <tbody className="divide-y divide-white/5 bg-[#141414]">
                     {usersList.map((u) => (
-                      <tr key={u.id} className="hover:bg-[#1a1a1a] transition-colors">
+                      <tr key={u.id} className="hover:bg-[#181818] transition-colors">
                         <td className="p-3">
-                          <div className="font-semibold text-white">{u.name}</div>
+                          <div className="font-semibold text-[#FFFFFF] font-sora">{u.name}</div>
                           <div className="text-[11px] text-[#888888] font-mono">{u.email}</div>
                         </td>
                         <td className="p-3">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            className={`px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold font-sora uppercase ${
                               u.plan === 'pro'
-                                ? 'bg-[#DB0B2B]/20 text-[#DB0B2B] border border-[#DB0B2B]/40'
-                                : 'bg-[#252525] text-[#aaaaaa]'
+                                ? 'bg-[#DB0B2B]/15 text-[#DB0B2B] border border-[#DB0B2B]/40'
+                                : 'bg-[#181818] text-[#CCCCCC]'
                             }`}
                           >
                             {u.plan}
                           </span>
                         </td>
-                        <td className="p-3 font-mono text-[#cccccc]">{u.mockupsCount} designs</td>
-                        <td className="p-3 text-[#777777]">{u.joined}</td>
+                        <td className="p-3 font-mono text-[#CCCCCC]">{u.mockupsCount} designs</td>
+                        <td className="p-3 text-[#888888]">{u.joined}</td>
                         <td className="p-3 text-right">
                           <button
                             type="button"
@@ -339,7 +349,7 @@ export const AdminDashboardModal: React.FC = () => {
                                 )
                               )
                             }
-                            className="text-[11px] text-[#DB0B2B] hover:underline"
+                            className="text-[11px] text-[#DB0B2B] hover:underline cursor-pointer"
                           >
                             Set to {u.plan === 'free' ? 'Pro' : 'Free'}
                           </button>
@@ -355,9 +365,9 @@ export const AdminDashboardModal: React.FC = () => {
           {/* TAB 3: BILLING TRANSACTIONS */}
           {activeTab === 'payments' && (
             <div className="space-y-4">
-              <div className="border border-[#262626] rounded-xl overflow-hidden">
+              <div className="border border-white/10 rounded-[4px] overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#181818] text-[#888888] uppercase tracking-wider text-[10px] border-b border-[#262626]">
+                  <thead className="bg-[#000000] text-[#888888] uppercase tracking-wider text-[10px] border-b border-white/10">
                     <tr>
                       <th className="p-3">Invoice ID</th>
                       <th className="p-3">User Email</th>
@@ -367,16 +377,16 @@ export const AdminDashboardModal: React.FC = () => {
                       <th className="p-3 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#222222] bg-[#141414]">
+                  <tbody className="divide-y divide-white/5 bg-[#141414]">
                     {paymentsList.map((tx) => (
-                      <tr key={tx.id} className="hover:bg-[#1a1a1a] transition-colors">
-                        <td className="p-3 font-mono text-white font-semibold">{tx.id}</td>
-                        <td className="p-3 text-[#cccccc]">{tx.user}</td>
-                        <td className="p-3 font-mono font-bold text-white">{tx.amount}</td>
+                      <tr key={tx.id} className="hover:bg-[#181818] transition-colors">
+                        <td className="p-3 font-mono text-[#FFFFFF] font-semibold">{tx.id}</td>
+                        <td className="p-3 text-[#CCCCCC]">{tx.user}</td>
+                        <td className="p-3 font-mono font-bold text-[#FFFFFF]">{tx.amount}</td>
                         <td className="p-3 text-[#888888]">{tx.method}</td>
-                        <td className="p-3 text-[#777777]">{tx.date}</td>
+                        <td className="p-3 text-[#888888]">{tx.date}</td>
                         <td className="p-3 text-right">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500/20 text-green-400 border border-green-500/30">
+                          <span className="px-1.5 py-0.5 rounded-[2px] text-[9.5px] font-bold bg-[#10B981]/15 text-[#10B981] border border-[#10B981]/30">
                             {tx.status}
                           </span>
                         </td>
@@ -392,3 +402,5 @@ export const AdminDashboardModal: React.FC = () => {
     </div>
   );
 };
+
+export default AdminDashboardModal;

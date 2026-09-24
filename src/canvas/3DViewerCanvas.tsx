@@ -39,6 +39,7 @@ const SceneContent: React.FC<{
   const scene = useEditorStore((s) => s.scene);
   const cameraPreset = useEditorStore((s) => s.cameraPreset);
   const isPlayingTurntable = useEditorStore((s) => s.isPlayingTurntable);
+  const updateScene = useEditorStore((s) => s.updateScene);
 
   return (
     <>
@@ -51,6 +52,16 @@ const SceneContent: React.FC<{
         maxDistance={7.5}
         maxPolarAngle={Math.PI / 2 + 0.18}
         target={[0, -0.1, 0]}
+        onEnd={() => {
+          if (controlsRef.current?.object) {
+            const cam = controlsRef.current.object as THREE.Camera;
+            updateScene({
+              cameraX: parseFloat(cam.position.x.toFixed(3)),
+              cameraY: parseFloat(cam.position.y.toFixed(3)),
+              cameraZ: parseFloat(cam.position.z.toFixed(3)),
+            });
+          }
+        }}
       />
 
       <CameraController preset={cameraPreset} controlsRef={controlsRef} />
@@ -192,7 +203,8 @@ export const Viewer3DCanvas: React.FC = () => {
   return (
     <div
       id="3d-viewer-canvas-container"
-      className="relative w-full h-full select-none overflow-hidden transition-colors duration-300 bg-transparent"
+      style={backgroundStyle}
+      className="relative w-full h-full select-none overflow-hidden transition-all duration-300"
     >
       <Canvas
         camera={{ position: [0, 0.1, 3.8], fov: 45 }}

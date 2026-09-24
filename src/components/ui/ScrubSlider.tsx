@@ -96,31 +96,33 @@ export const ScrubSlider: React.FC<ScrubSliderProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className={`relative h-9 px-3 flex items-center justify-between rounded-[4px] bg-black/40 hover:bg-black/60 border border-white/10 hover:border-white/20 backdrop-blur-md transition-colors select-none cursor-ew-resize overflow-hidden group ${
-        isDragging ? 'border-white/40 ring-1 ring-white/20' : ''
+      className={`relative h-9 px-3 flex items-center justify-between rounded-[4px] bg-[#181818] hover:bg-[#1E1E1E] border transition-colors select-none cursor-ew-resize overflow-hidden touch-none group ${
+        isDragging ? 'border-[#DB0B2B]' : 'border-white/10 hover:border-white/15'
       } ${className}`}
     >
       {/* Background progress track indicator */}
       <div
-        className="absolute inset-y-0 left-0 bg-white/[0.04] pointer-events-none transition-all"
+        className="absolute inset-y-0 left-0 bg-white/[0.05] pointer-events-none transition-all"
         style={{ width: `${clampedPct * 100}%` }}
       />
 
-      {/* Vertical white scrubber bar handle (as seen in image.png) */}
+      {/* Vertical scrubber bar handle */}
       <div
-        className="absolute top-1.5 bottom-1.5 w-[3px] bg-white rounded-[1px] pointer-events-none shadow-[0_0_6px_rgba(255,255,255,0.7)] transition-transform"
+        className={`absolute top-1.5 bottom-1.5 w-[3px] rounded-[1px] pointer-events-none transition-transform ${
+          isDragging ? 'bg-[#DB0B2B]' : 'bg-[#FFFFFF]'
+        }`}
         style={{
           left: `calc(${clampedPct * 100}% - 1.5px)`,
         }}
       />
 
       {/* Label on left */}
-      <span className="text-[11px] font-medium text-[#cccccc] tracking-tight pointer-events-none relative z-10">
+      <span className="text-[11px] font-medium text-[#CCCCCC] tracking-tight pointer-events-none relative z-10">
         {label}
       </span>
 
       {/* Value on right */}
-      <span className="font-mono text-[11px] text-white tracking-wider pointer-events-none relative z-10">
+      <span className="font-mono text-[11px] text-[#FFFFFF] tracking-wider pointer-events-none relative z-10">
         {formatValue(clampedValue)}
         {displaySuffix}
       </span>

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useEditorStore } from './store/editorStore';
 import { Header } from './components/Header';
 import { Canvas3D } from './canvas/Canvas3D';
-import { FloatingToolbar } from './components/FloatingToolbar';
 import { TimelineScrubber } from './components/TimelineScrubber';
 import { DesignPanel } from './features/editor/DesignPanel';
 import { MaterialPanel } from './features/editor/MaterialPanel';
@@ -97,12 +96,12 @@ export default function App() {
       <Header />
 
       {/* Mobile Top View Switcher (only visible on small screens < md) */}
-      <div className="md:hidden flex items-center justify-around bg-black/50 backdrop-blur-xl border-b border-white/10 px-2 py-1.5 shrink-0 z-20">
+      <div className="md:hidden flex items-center justify-around bg-[#0A0A0A] border-b border-white/10 px-2 py-1.5 shrink-0 z-20">
         <button
           type="button"
           onClick={() => setMobileView('left')}
           className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-medium transition-colors cursor-pointer ${
-            mobileView === 'left' ? 'bg-[#DB0B2B] text-white shadow-xs' : 'text-[#888888] hover:text-white'
+            mobileView === 'left' ? 'bg-[#DB0B2B] text-[#FFFFFF]' : 'text-[#888888] hover:text-[#FFFFFF]'
           }`}
         >
           <Square3Stack3DIcon className="w-3.5 h-3.5" />
@@ -112,7 +111,7 @@ export default function App() {
           type="button"
           onClick={() => setMobileView('canvas')}
           className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-medium transition-colors cursor-pointer ${
-            mobileView === 'canvas' ? 'bg-white/15 text-white shadow-xs' : 'text-[#888888] hover:text-white'
+            mobileView === 'canvas' ? 'bg-[#181818] text-[#FFFFFF] border border-white/15' : 'text-[#888888] hover:text-[#FFFFFF]'
           }`}
         >
           <CubeIcon className="w-3.5 h-3.5" />
@@ -122,7 +121,7 @@ export default function App() {
           type="button"
           onClick={() => setMobileView('right')}
           className={`flex items-center gap-1.5 px-3 py-1 rounded-[4px] text-xs font-medium transition-colors cursor-pointer ${
-            mobileView === 'right' ? 'bg-[#DB0B2B] text-white shadow-xs' : 'text-[#888888] hover:text-white'
+            mobileView === 'right' ? 'bg-[#DB0B2B] text-[#FFFFFF]' : 'text-[#888888] hover:text-[#FFFFFF]'
           }`}
         >
           <SunIcon className="w-3.5 h-3.5" />
@@ -130,16 +129,16 @@ export default function App() {
         </button>
       </div>
 
-      {/* 2. Main Studio Workspace: 2 Frosted Glass Panels flanking Center 3D Viewport */}
+      {/* 2. Main Studio Workspace: 2 Panels flanking Center 3D Viewport */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
         {/* PANEL SEBELAH KIRI (LEFT PANEL): Design, Material, Position, Camera */}
         <aside
-          className={`w-full md:w-[340px] xl:w-[300px] bg-black/45 backdrop-blur-2xl border-b md:border-b-0 md:border-r border-white/10 flex flex-col h-full shrink-0 z-20 shadow-2xl transition-all ${
+          className={`w-full md:w-[300px] bg-[#0A0A0A] border-b md:border-b-0 md:border-r border-white/10 flex flex-col h-full shrink-0 z-20 shadow-2xl transition-all ${
             mobileView === 'left' ? 'flex' : 'hidden md:flex'
           }`}
         >
           {/* Left Panel Tabs */}
-          <div className="grid grid-cols-4 border-b border-white/10 bg-black/35 backdrop-blur-xl px-1 pt-1 gap-0.5">
+          <div className="grid grid-cols-4 border-b border-white/10 bg-[#0A0A0A] px-1 pt-1 gap-0.5">
             {leftTabs.map((tab) => {
               const isActive = activeLeftTab === tab.id;
               const Icon = tab.icon;
@@ -152,8 +151,8 @@ export default function App() {
                   title={tab.label}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-t-[4px] transition-all relative cursor-pointer ${
                     isActive
-                      ? 'text-white bg-white/10 backdrop-blur-md'
-                      : 'text-[#888888] hover:text-[#cccccc] hover:bg-white/5'
+                      ? 'text-[#FFFFFF] bg-[#141414]'
+                      : 'text-[#888888] hover:text-[#CCCCCC] hover:bg-[#141414]/50'
                   }`}
                 >
                   <Icon
@@ -190,21 +189,18 @@ export default function App() {
           {/* Three.js R3F Canvas Viewport with transparent canvas on top of mirrored backdrop */}
           <Canvas3D />
 
-          {/* Floating Toolbars with Apple-Style Dark Blur */}
-          <FloatingToolbar />
-
-          {/* Bottom Timeline Scrubber with Apple-Style Dark Blur */}
+          {/* Bottom Timeline Scrubber */}
           <TimelineScrubber />
         </main>
 
         {/* PANEL SEBELAH KANAN (RIGHT PANEL): Lighting, Background, Scene, Shadow */}
         <aside
-          className={`w-full md:w-[330px] xl:w-[300px] bg-black/45 backdrop-blur-2xl border-t md:border-t-0 md:border-l border-white/10 flex flex-col h-full shrink-0 z-20 shadow-2xl transition-all ${
+          className={`w-full md:w-[300px] bg-[#0A0A0A] border-t md:border-t-0 md:border-l border-white/10 flex flex-col h-full shrink-0 z-20 shadow-2xl transition-all ${
             mobileView === 'right' ? 'flex' : 'hidden md:flex'
           }`}
         >
           {/* Right Panel Tabs */}
-          <div className="grid grid-cols-4 border-b border-white/10 bg-black/35 backdrop-blur-xl px-1 pt-1 gap-0.5">
+          <div className="grid grid-cols-4 border-b border-white/10 bg-[#0A0A0A] px-1 pt-1 gap-0.5">
             {rightTabs.map((tab) => {
               const isActive = activeRightTab === tab.id;
               const Icon = tab.icon;
@@ -217,8 +213,8 @@ export default function App() {
                   title={tab.label}
                   className={`flex flex-col items-center justify-center py-2 px-1 rounded-t-[4px] transition-all relative cursor-pointer ${
                     isActive
-                      ? 'text-white bg-white/10 backdrop-blur-md'
-                      : 'text-[#888888] hover:text-[#cccccc] hover:bg-white/5'
+                      ? 'text-[#FFFFFF] bg-[#141414]'
+                      : 'text-[#888888] hover:text-[#CCCCCC] hover:bg-[#141414]/50'
                   }`}
                 >
                   <Icon

@@ -180,15 +180,15 @@ export const UVCanvasPreview: React.FC = () => {
 
       // 4. Draw Transform Handles if Active/Selected Layer
       if (layer.id === selectedLayerId) {
-        // Thin white bounding box
-        ctx.strokeStyle = '#FFFFFF';
+        // Red bounding box for active selection
+        ctx.strokeStyle = '#DB0B2B';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(-drawW / 2, -drawH / 2, drawW, drawH);
 
-        // 4 Corner Handles (small white squares with subtle shadow)
+        // 4 Corner Handles
         const hs = 7; // handle size
-        ctx.fillStyle = '#FFFFFF';
-        ctx.strokeStyle = '#000000';
+        ctx.fillStyle = '#DB0B2B';
+        ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 1;
 
         const corners = [
@@ -203,10 +203,10 @@ export const UVCanvasPreview: React.FC = () => {
           ctx.strokeRect(x - hs / 2, y - hs / 2, hs, hs);
         });
 
-        // Top stem to rotation handle (as seen in image.png)
+        // Top stem to rotation handle
         const stemLength = 22;
         ctx.beginPath();
-        ctx.strokeStyle = '#FFFFFF';
+        ctx.strokeStyle = '#DB0B2B';
         ctx.lineWidth = 1.5;
         ctx.moveTo(0, -drawH / 2);
         ctx.lineTo(0, -drawH / 2 - stemLength);
@@ -217,9 +217,9 @@ export const UVCanvasPreview: React.FC = () => {
         const rotRadius = 5.5;
         ctx.beginPath();
         ctx.arc(0, rotY, rotRadius, 0, Math.PI * 2);
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = '#DB0B2B';
         ctx.fill();
-        ctx.strokeStyle = '#000000';
+        ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 1.2;
         ctx.stroke();
       }
@@ -422,24 +422,24 @@ export const UVCanvasPreview: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="relative aspect-square w-full bg-[#0c0c0c] rounded-[4px] border border-[#262626] overflow-hidden select-none"
+      className="relative aspect-square w-full bg-[#000000] rounded-[4px] border border-white/10 overflow-hidden select-none"
     >
-      {/* Top-Right: [ 👁 Guide ] button as shown in image.png */}
+      {/* Top-Right: [ 👁 Guide ] button */}
       <button
         id="uv-guide-toggle-btn"
         type="button"
         onClick={() => setShowUVGuide(!showUVGuide)}
-        className={`absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 px-2 py-1 rounded-[4px] border text-xs font-medium backdrop-blur-md transition-colors cursor-pointer ${
+        className={`absolute top-2.5 right-2.5 z-20 flex items-center gap-1.5 px-2 py-1 rounded-[4px] border text-xs font-medium transition-colors cursor-pointer ${
           showUVGuide
-            ? 'bg-[#181818]/90 border-[#444444] text-white shadow-xs'
-            : 'bg-[#121212]/80 border-[#262626] text-[#777777] hover:text-white'
+            ? 'bg-[#181818] border-white/15 text-[#FFFFFF]'
+            : 'bg-[#141414] border-white/10 text-[#888888] hover:text-[#FFFFFF]'
         }`}
         title="Toggle UV Guide Wireframe"
       >
         {showUVGuide ? (
-          <EyeIcon className="w-3.5 h-3.5 text-white" />
+          <EyeIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
         ) : (
-          <EyeSlashIcon className="w-3.5 h-3.5 text-[#777777]" />
+          <EyeSlashIcon className="w-3.5 h-3.5 text-[#888888]" />
         )}
         <span className="text-[11px] tracking-tight">Guide</span>
       </button>
@@ -453,7 +453,7 @@ export const UVCanvasPreview: React.FC = () => {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className="w-full h-full object-contain block"
+        className="w-full h-full object-contain block touch-none"
         style={{ cursor: cursorStyle }}
       />
     </div>

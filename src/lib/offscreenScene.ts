@@ -27,8 +27,18 @@ async function getGLTFBuffer(): Promise<ArrayBuffer | null> {
 
 export function computeExportDimensions(
   ratio: AspectRatio,
-  maxDimension = 1920
+  maxDimension = 1920,
+  forVideo = false
 ): { width: number; height: number } {
+  if (forVideo) {
+    // Professional standard HD video exports (capped to 1080p standard dimensions)
+    // Avoids exceeding AVC Level 4.2 maximum coded area (2,228,224 pixels)
+    if (ratio === '16:9') return { width: 1920, height: 1080 };
+    if (ratio === '9:16') return { width: 1080, height: 1920 };
+    if (ratio === '1:1') return { width: 1080, height: 1080 };
+    if (ratio === '4:5') return { width: 1080, height: 1350 };
+  }
+
   let targetRatio = 16 / 9;
   if (ratio === '1:1') targetRatio = 1.0;
   if (ratio === '9:16') targetRatio = 9 / 16;
@@ -128,20 +138,26 @@ export async function createOffscreenScene(params: {
     }
   } else if (sceneSettings.backgroundType === 'gradient') {
     const bgCanvas = document.createElement('canvas');
-    bgCanvas.width = 512;
-    bgCanvas.height = 512;
+    bgCanvas.width = width;
+    bgCanvas.height = height;
     const ctx = bgCanvas.getContext('2d');
     if (ctx) {
-      const angle = ((sceneSettings.gradientAngle ?? 135) * Math.PI) / 180;
-      const x1 = Math.round(256 - Math.cos(angle) * 256);
-      const y1 = Math.round(256 - Math.sin(angle) * 256);
-      const x2 = Math.round(256 + Math.cos(angle) * 256);
-      const y2 = Math.round(256 + Math.sin(angle) * 256);
-      const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-      grad.addColorStop(0, sceneSettings.gradientColor1 || '#202020');
-      grad.addColorStop(1, sceneSettings.gradientColor2 || '#090909');
+      const rad = ((sceneSettings.gradientAngle ?? 135) * Math.PI) / 180;
+      const dx = Math.sin(rad);
+      const dy = -Math.cos(rad);
+      const length = Math.sqrt(width * width + height * height) / 2;
+      const cx = width / 2;
+      const cy = height / 2;
+      const grad = ctx.createLinearGradient(
+        cx - dx * length,
+        cy - dy * length,
+        cx + dx * length,
+        cy + dy * length
+      );
+      grad.addColorStop(0, sceneSettings.gradientColor1 || '#2a2a2a');
+      grad.addColorStop(1, sceneSettings.gradientColor2 || '#080808');
       ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 512, 512);
+      ctx.fillRect(0, 0, width, height);
       threeScene.background = new THREE.CanvasTexture(bgCanvas);
     }
   } else if (sceneSettings.backgroundType === 'image' && sceneSettings.backgroundImageUrl) {
@@ -153,8 +169,29 @@ export async function createOffscreenScene(params: {
         img.onload = res;
         img.onerror = res;
       });
-      threeScene.background = new THREE.Texture(img);
-      (threeScene.background as THREE.Texture).needsUpdate = true;
+      const bgCanvas = document.createElement('canvas');
+      bgCanvas.width = width;
+      bgCanvas.height = height;
+      const ctx = bgCanvas.getContext('2d');
+      if (ctx) {
+        const imgAspect = (img.width || 1) / (img.height || 1);
+        const targetAspect = width / height;
+        let dw = width;
+        let dh = height;
+        let ox = 0;
+        let oy = 0;
+        if (imgAspect > targetAspect) {
+          dh = height;
+          dw = height * imgAspect;
+          ox = (width - dw) / 2;
+        } else {
+          dw = width;
+          dh = width / imgAspect;
+          oy = (height - dh) / 2;
+        }
+        ctx.drawImage(img, ox, oy, dw, dh);
+        threeScene.background = new THREE.CanvasTexture(bgCanvas);
+      }
     } catch {
       threeScene.background = new THREE.Color('#0c0c0c');
     }
@@ -170,10 +207,13 @@ export async function createOffscreenScene(params: {
     100
   );
   const coords = PRESET_COORDINATES[cameraPreset] || PRESET_COORDINATES.front;
-  camera.position.set(coords[0], coords[1], coords[2]);
+  const camX = sceneSettings.cameraX ?? coords[0];
+  const camY = sceneSettings.cameraY ?? coords[1];
+  const camZ = sceneSettings.cameraZ ?? coords[2];
+  camera.position.set(camX, camY, camZ);
   camera.lookAt(0, -0.1, 0);
 
-  // 5. Studio Lighting
+  // 5. Studio Lighting exactly matching StudioLighting.tsx in 3D viewport
   const { lightingPreset, lightIntensity, lightAngle, showShadow, shadowType, shadowBlur } = sceneSettings;
   const rad = ((lightAngle ?? 45) * Math.PI) / 180;
   const radius = 5.5;
@@ -187,52 +227,100 @@ export async function createOffscreenScene(params: {
   const isShadowActive = showShadow && shadowType !== 'none';
   const shadowRadius = shadowBlur ?? (shadowType === 'soft' ? 3.5 : 1.0);
 
-  let ambColor = '#ffffff';
-  let ambIntensity = 0.5 * lightIntensity;
-  if (lightingPreset === 'warm') { ambColor = '#fff1e6'; ambIntensity = 0.45 * lightIntensity; }
-  else if (lightingPreset === 'cyber') { ambColor = '#101020'; ambIntensity = 0.3 * lightIntensity; }
-  else if (lightingPreset === 'dramatic') { ambIntensity = 0.25 * lightIntensity; }
-  else if (lightingPreset === 'daylight') { ambIntensity = 0.6 * lightIntensity; }
+  const applyShadowProps = (light: THREE.DirectionalLight) => {
+    if (isShadowActive) {
+      light.castShadow = true;
+      light.shadow.mapSize.set(2048, 2048);
+      light.shadow.bias = -0.0002;
+      light.shadow.camera.near = 0.5;
+      light.shadow.camera.far = 20;
+      light.shadow.camera.left = -2.4;
+      light.shadow.camera.right = 2.4;
+      light.shadow.camera.top = 2.4;
+      light.shadow.camera.bottom = -2.4;
+      light.shadow.radius = shadowRadius;
+    }
+  };
 
-  const ambient = new THREE.AmbientLight(ambColor, ambIntensity);
-  threeScene.add(ambient);
+  switch (lightingPreset) {
+    case 'dramatic': {
+      threeScene.add(new THREE.AmbientLight(0xffffff, 0.25 * lightIntensity));
+      const key = new THREE.DirectionalLight(0xffffff, 1.8 * lightIntensity);
+      key.position.set(keyX, 5, keyZ);
+      applyShadowProps(key);
+      threeScene.add(key);
 
-  let keyColor = '#ffffff';
-  let keyIntensity = 1.3 * lightIntensity;
-  if (lightingPreset === 'dramatic') keyIntensity = 1.8 * lightIntensity;
-  if (lightingPreset === 'warm') { keyColor = '#ffe4b5'; keyIntensity = 1.4 * lightIntensity; }
-  if (lightingPreset === 'cyber') { keyColor = '#DB0B2B'; keyIntensity = 1.6 * lightIntensity; }
-  if (lightingPreset === 'daylight') { keyColor = '#f5f8ff'; keyIntensity = 1.5 * lightIntensity; }
+      const rim = new THREE.DirectionalLight('#ff3355', 2.2 * lightIntensity);
+      rim.position.set(rimX, 3, rimZ);
+      threeScene.add(rim);
 
-  const keyLight = new THREE.DirectionalLight(keyColor, keyIntensity);
-  keyLight.position.set(keyX, 4, keyZ);
-  if (isShadowActive) {
-    keyLight.castShadow = true;
-    keyLight.shadow.mapSize.set(2048, 2048);
-    keyLight.shadow.bias = -0.0002;
-    keyLight.shadow.camera.near = 0.5;
-    keyLight.shadow.camera.far = 20;
-    keyLight.shadow.camera.left = -2.4;
-    keyLight.shadow.camera.right = 2.4;
-    keyLight.shadow.camera.top = 2.4;
-    keyLight.shadow.camera.bottom = -2.4;
-    keyLight.shadow.radius = shadowRadius;
+      const underfill = new THREE.DirectionalLight(0xffffff, 0.4 * lightIntensity);
+      underfill.position.set(0, -2, -2);
+      threeScene.add(underfill);
+      break;
+    }
+    case 'warm': {
+      threeScene.add(new THREE.AmbientLight('#fff1e6', 0.45 * lightIntensity));
+      const key = new THREE.DirectionalLight('#ffe4b5', 1.4 * lightIntensity);
+      key.position.set(keyX, 4, keyZ);
+      applyShadowProps(key);
+      threeScene.add(key);
+
+      const fill = new THREE.DirectionalLight('#ffd1a4', 0.7 * lightIntensity);
+      fill.position.set(fillX, 2, fillZ);
+      threeScene.add(fill);
+      break;
+    }
+    case 'cyber': {
+      threeScene.add(new THREE.AmbientLight('#101020', 0.3 * lightIntensity));
+      const key = new THREE.DirectionalLight('#DB0B2B', 1.6 * lightIntensity);
+      key.position.set(keyX, 3, keyZ);
+      applyShadowProps(key);
+      threeScene.add(key);
+
+      const rim = new THREE.DirectionalLight('#00e5ff', 1.8 * lightIntensity);
+      rim.position.set(rimX, 2, rimZ);
+      threeScene.add(rim);
+
+      const pt = new THREE.PointLight('#ffffff', 0.8 * lightIntensity);
+      pt.position.set(0, -1, 3);
+      threeScene.add(pt);
+      break;
+    }
+    case 'daylight': {
+      threeScene.add(new THREE.AmbientLight('#f4f8ff', 0.7 * lightIntensity));
+      const key = new THREE.DirectionalLight('#ffffff', 1.5 * lightIntensity);
+      key.position.set(keyX, 8, keyZ);
+      applyShadowProps(key);
+      threeScene.add(key);
+
+      const fill = new THREE.DirectionalLight('#e0eeff', 0.5 * lightIntensity);
+      fill.position.set(fillX, 4, fillZ);
+      threeScene.add(fill);
+      break;
+    }
+    case 'studio':
+    default: {
+      threeScene.add(new THREE.AmbientLight('#ffffff', 0.6 * lightIntensity));
+      const key = new THREE.DirectionalLight('#ffffff', 1.35 * lightIntensity);
+      key.position.set(keyX, 4.5, keyZ);
+      applyShadowProps(key);
+      threeScene.add(key);
+
+      const fill = new THREE.DirectionalLight('#f0f4f8', 0.65 * lightIntensity);
+      fill.position.set(fillX, 2.5, fillZ);
+      threeScene.add(fill);
+
+      const rim = new THREE.DirectionalLight('#ffffff', 0.9 * lightIntensity);
+      rim.position.set(rimX, 4.0, rimZ);
+      threeScene.add(rim);
+
+      const underfill = new THREE.DirectionalLight('#d0d0d0', 0.25 * lightIntensity);
+      underfill.position.set(0, -3.0, 2.0);
+      threeScene.add(underfill);
+      break;
+    }
   }
-  threeScene.add(keyLight);
-
-  const fillLight = new THREE.DirectionalLight(
-    lightingPreset === 'cyber' ? '#1e90ff' : '#ffffff',
-    0.6 * lightIntensity
-  );
-  fillLight.position.set(fillX, 2, fillZ);
-  threeScene.add(fillLight);
-
-  const rimLight = new THREE.DirectionalLight(
-    lightingPreset === 'cyber' ? '#ff0055' : '#ffffff',
-    0.8 * lightIntensity
-  );
-  rimLight.position.set(rimX, 3, rimZ);
-  threeScene.add(rimLight);
 
   // 6. Wall & Floor
   if (sceneSettings.showWall) {
@@ -294,11 +382,12 @@ export async function createOffscreenScene(params: {
 
   // 9. Model Construction
   const modelGroup = new THREE.Group();
-  const baseScale = 2.3 * (sceneSettings.modelScale || 1.0);
+  const isONeck = modelType === 'o-neck';
+  const baseScale = (isONeck ? 2.3 : 1.0) * (sceneSettings.modelScale || 1.0);
   modelGroup.scale.set(baseScale, baseScale, baseScale);
   modelGroup.position.set(
     sceneSettings.modelX || 0,
-    (sceneSettings.modelY || 0) - 0.08,
+    (sceneSettings.modelY || 0) + (isONeck ? -0.08 : 0),
     sceneSettings.modelZ || 0
   );
 

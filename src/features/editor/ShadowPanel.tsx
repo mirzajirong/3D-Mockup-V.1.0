@@ -10,16 +10,16 @@ export const ShadowPanel: React.FC = () => {
   const updateScene = useEditorStore((s) => s.updateScene);
 
   return (
-    <div className="flex flex-col gap-3 p-4 text-white overflow-y-auto max-h-full font-geist">
-      {/* 1. Shadow Toggle (Style Toggle Switch) */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-3">
+    <div className="flex flex-col gap-3 p-4 text-[#FFFFFF] overflow-y-auto max-h-full font-geist">
+      {/* 1. Shadow Toggle */}
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-white">3D Model Shadow</span>
+          <span className="text-xs font-semibold text-[#FFFFFF]">3D Model Shadow</span>
 
           <div className="flex items-center gap-2.5">
             <span
               className={`text-[11px] font-mono uppercase tracking-wider font-semibold transition-colors select-none ${
-                scene.showShadow ? 'text-[#DB0B2B]' : 'text-[#666666]'
+                scene.showShadow ? 'text-[#DB0B2B]' : 'text-[#888888]'
               }`}
             >
               {scene.showShadow ? 'ON' : 'OFF'}
@@ -35,7 +35,7 @@ export const ShadowPanel: React.FC = () => {
 
         {/* Sliders: Shadow Opacity & Shadow Blur */}
         {scene.showShadow && (
-          <div className="space-y-3 pt-2 border-t border-white/5">
+          <div className="space-y-3 pt-2 border-t border-white/10">
             {/* Opacity */}
             <ScrubSlider
               id="shadow-opacity-scrub-slider"
@@ -65,12 +65,12 @@ export const ShadowPanel: React.FC = () => {
         )}
       </div>
 
-      {/* 2. Shadow Style Options (Dropdown without icons) */}
+      {/* 2. Shadow Style Options */}
       {scene.showShadow && (
-        <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-2">
+        <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-2">
           <label
             htmlFor="shadow-style-select"
-            className="text-[11px] font-bold text-[#cccccc] uppercase tracking-wider block font-sora"
+            className="text-[11px] font-bold text-[#CCCCCC] uppercase tracking-wider block font-sora"
           >
             SHADOW STYLE
           </label>
@@ -82,12 +82,12 @@ export const ShadowPanel: React.FC = () => {
               onChange={(e) =>
                 updateScene({ shadowType: e.target.value as ShadowType })
               }
-              className="w-full bg-black/60 hover:bg-black/80 border border-white/15 focus:border-[#DB0B2B] text-white text-xs rounded-[4px] px-3 py-2 pr-8 focus:outline-hidden appearance-none cursor-pointer transition-colors backdrop-blur-md"
+              className="w-full bg-[#181818] hover:bg-[#1E1E1E] border border-white/15 focus:border-[#DB0B2B] text-[#FFFFFF] text-xs rounded-[4px] px-3 py-2 pr-8 focus:outline-hidden appearance-none cursor-pointer transition-colors"
             >
-              <option value="contact" className="bg-[#121212] text-white">
+              <option value="contact" className="bg-[#181818] text-[#FFFFFF]">
                 Contact Shadow
               </option>
-              <option value="soft" className="bg-[#121212] text-white">
+              <option value="soft" className="bg-[#181818] text-[#FFFFFF]">
                 Soft Floor Diffusion
               </option>
             </select>

@@ -25,15 +25,15 @@ export const StudioSlider: React.FC<StudioSliderProps> = ({
   return (
     <div className="flex items-center gap-2 w-full select-none">
       {/* Slider Track with integrated label and white capsule thumb */}
-      <div className="relative flex-1 h-9 bg-[#161616] hover:bg-[#1a1a1a] border border-[#262626] rounded-lg flex items-center px-3 overflow-hidden transition-colors cursor-pointer group">
+      <div className="relative flex-1 h-8 bg-[#141414] hover:bg-[#181818] border border-white/10 rounded-[4px] flex items-center px-3 overflow-hidden transition-colors cursor-pointer group">
         {/* Label inside track on the left */}
-        <span className="text-xs text-[#888888] group-hover:text-[#aaaaaa] font-medium tracking-tight pointer-events-none z-10 truncate max-w-[65%]">
+        <span className="text-xs text-[#888888] group-hover:text-[#CCCCCC] font-medium tracking-tight pointer-events-none z-10 truncate max-w-[65%]">
           {label}
         </span>
 
         {/* Capsule thumb indicator */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-2 h-5 bg-white rounded-full shadow-md pointer-events-none transition-all duration-75"
+          className="absolute top-1/2 -translate-y-1/2 w-2 h-4 bg-[#FFFFFF] rounded-full pointer-events-none transition-all duration-75"
           style={{
             left: `calc(${percentage}% * 0.92 + 4px)`,
           }}
@@ -52,7 +52,7 @@ export const StudioSlider: React.FC<StudioSliderProps> = ({
       </div>
 
       {/* Numeric value readout box on right */}
-      <div className="w-11 h-9 bg-[#161616] border border-[#262626] rounded-lg flex items-center justify-center text-xs font-mono font-medium text-white shrink-0 select-none shadow-inner">
+      <div className="w-11 h-8 bg-[#141414] border border-white/10 rounded-[4px] flex items-center justify-center text-xs font-mono font-medium text-[#FFFFFF] shrink-0 select-none">
         {value}
         {unit}
       </div>
@@ -75,22 +75,22 @@ export const StudioSelect: React.FC<StudioSelectProps> = ({
 }) => {
   return (
     <div className="flex flex-col gap-1.5 w-full select-none">
-      <label className="text-[11px] font-bold text-[#666666] tracking-wider uppercase font-sans">
+      <label className="text-[11px] font-bold text-[#888888] tracking-wider uppercase font-sora">
         {label}
       </label>
       <div className="relative w-full">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-9 bg-[#161616] hover:bg-[#1a1a1a] border border-[#262626] hover:border-[#333333] rounded-lg px-3 pr-8 text-xs text-white appearance-none outline-none cursor-pointer transition-colors font-medium"
+          className="w-full h-8 bg-[#141414] hover:bg-[#181818] border border-white/10 hover:border-white/15 focus:border-[#DB0B2B] rounded-[4px] px-3 pr-8 text-xs text-[#FFFFFF] appearance-none outline-none cursor-pointer transition-colors font-medium"
         >
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value} className="bg-[#181818] text-white">
+            <option key={opt.value} value={opt.value} className="bg-[#181818] text-[#FFFFFF]">
               {opt.label}
             </option>
           ))}
         </select>
-        <ChevronDownIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#777777] pointer-events-none" />
+        <ChevronDownIcon className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#888888] pointer-events-none" />
       </div>
     </div>
   );

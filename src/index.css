@@ -4,6 +4,31 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-geist: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sora: 'Sora', sans-serif;
+
+  --color-brand-primary: #DB0B2B;
+  --color-brand-hover: #F01436;
+  --color-brand-active: #B00820;
+  --color-brand-soft: rgba(219, 11, 43, 0.15);
+
+  --color-surface-bg: #000000;
+  --color-surface-base: #0A0A0A;
+  --color-surface-panel: #141414;
+  --color-surface-card: #181818;
+  --color-surface-elevated: #1E1E1E;
+
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #CCCCCC;
+  --color-text-muted: #888888;
+  --color-text-disabled: #555555;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.10);
+  --color-border-standard: rgba(255, 255, 255, 0.15);
+  --color-border-active: #DB0B2B;
+
+  --color-status-success: #10B981;
+  --color-status-error: #EF4444;
+  --color-status-warning: #F59E0B;
+  --color-status-gold: #FFD700;
 }
 
 .font-sora {
@@ -17,14 +42,25 @@
 @layer base {
   :root {
     --bg-main: #000000;
+    --bg-base: #0A0A0A;
     --bg-panel: #141414;
     --bg-card: #181818;
-    --bg-input: #1f1f1f;
-    --border-color: #292929;
+    --bg-elevated: #1E1E1E;
+    --border-subtle: rgba(255, 255, 255, 0.10);
+    --border-standard: rgba(255, 255, 255, 0.15);
+    --border-active: #DB0B2B;
     --accent: #DB0B2B;
-    --accent-hover: #f01436;
-    --text-primary: #ffffff;
-    --text-muted: #999999;
+    --accent-hover: #F01436;
+    --accent-active: #B00820;
+    --accent-soft: rgba(219, 11, 43, 0.15);
+    --text-primary: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --text-muted: #888888;
+    --text-disabled: #555555;
+    --status-success: #10B981;
+    --status-error: #EF4444;
+    --status-warning: #F59E0B;
+    --status-gold: #FFD700;
   }
 
   body {
@@ -41,21 +77,21 @@
     height: 5px;
   }
   ::-webkit-scrollbar-track {
-    background: #0d0d0d;
+    background: #0A0A0A;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
+    background: #222222;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3e3e3e;
+    background: #333333;
   }
 
   /* Custom range sliders */
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    background: #252525;
+    background: #181818;
     height: 4px;
     border-radius: 2px;
     outline: none;
@@ -66,7 +102,7 @@
     width: 14px;
     height: 14px;
     border-radius: 50%;
-    background: #ffffff;
+    background: #FFFFFF;
     cursor: pointer;
     box-shadow: 0 0 6px rgba(0,0,0,0.5);
     transition: transform 0.1s ease, background 0.1s ease;

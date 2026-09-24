@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditorStore } from '../store/editorStore';
 import { XMarkIcon, CheckIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { SparklesIcon as SparklesSolidIcon, StarIcon } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/20/solid';
 import confetti from 'canvas-confetti';
+import { APP_CONFIG } from '../config/constants';
 
 export const UpgradeModal: React.FC = () => {
   const upgradeModalOpen = useEditorStore((s) => s.upgradeModalOpen);
@@ -10,153 +11,235 @@ export const UpgradeModal: React.FC = () => {
   const user = useEditorStore((s) => s.user);
   const setUserPlan = useEditorStore((s) => s.setUserPlan);
 
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('annual');
+
   if (!upgradeModalOpen) return null;
 
   const handleUpgradeToPro = () => {
     setUserPlan('pro');
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 90,
+      spread: 75,
       origin: { y: 0.6 },
-      colors: ['#DB0B2B', '#ffffff', '#FFD700'],
+      colors: ['#DB0B2B', '#ffffff', '#FFD700', '#111111'],
     });
     setTimeout(() => {
       setUpgradeModalOpen(false);
-    }, 800);
+    }, 700);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 select-none animate-in fade-in duration-200 font-geist">
-      <div className="w-full max-w-xl bg-[#141414] border border-[#2a2a2a] rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-2">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#DB0B2B] flex items-center justify-center text-white shadow-lg shadow-[#DB0B2B]/30">
-              <SparklesSolidIcon className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base font-bold text-white font-sora">
-                Upgrade to Editor Suite Pro
-              </h2>
-              <p className="text-xs text-[#888888]">
-                Buka seluruh kapabilitas studio 3D rendering & video export
-              </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 select-none animate-in fade-in duration-200">
+      <div className="w-full max-w-2xl bg-[#0A0A0A] border border-white/15 rounded-[6px] shadow-2xl overflow-hidden flex flex-col">
+        {/* Top Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#000000]">
+          <div className="flex items-center gap-3">
+            <img
+              src={APP_CONFIG.assets.logo}
+              alt="Editor Suite"
+              className="w-7 h-7 rounded-[3px] object-contain shrink-0"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-[#FFFFFF] tracking-wider font-sora">
+                  EDITOR SUITE PRO
+                </span>
+                <span className="text-[10px] text-[#DB0B2B] font-mono font-bold">
+                  STUDIO SUITE
+                </span>
+              </div>
+              <span className="text-[10px] text-[#888888] font-medium tracking-tight">
+                {APP_CONFIG.tagline}
+              </span>
             </div>
           </div>
+
           <button
             type="button"
             onClick={() => setUpgradeModalOpen(false)}
-            className="p-1 rounded-lg text-[#777777] hover:text-white hover:bg-[#202020] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-[4px] border border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] transition-colors cursor-pointer"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Pricing Cards Comparison */}
-        <div className="p-6 pt-4 space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Modal Body */}
+        <div className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+          {/* Subtitle & Billing Switch */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+            <div>
+              <h2 className="text-base font-bold text-[#FFFFFF] font-sora">
+                Buka Seluruh Kapabilitas Studio 3D
+              </h2>
+              <p className="text-xs text-[#888888] mt-0.5">
+                Didesain khusus untuk creative editor, apparel designer, dan branding agency.
+              </p>
+            </div>
+
+            {/* Segmented billing control */}
+            <div className="flex items-center p-1 bg-[#141414] border border-white/10 rounded-[4px] self-start sm:self-auto shrink-0 gap-1">
+              <button
+                type="button"
+                onClick={() => setBillingCycle('monthly')}
+                className={`px-3 py-1 text-[11px] font-semibold rounded-[3px] transition-all cursor-pointer ${
+                  billingCycle === 'monthly'
+                    ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                    : 'text-[#888888] hover:text-[#FFFFFF]'
+                }`}
+              >
+                Bulanan
+              </button>
+              <button
+                type="button"
+                onClick={() => setBillingCycle('annual')}
+                className={`px-3 py-1 text-[11px] font-semibold rounded-[3px] transition-all cursor-pointer flex items-center gap-1.5 ${
+                  billingCycle === 'annual'
+                    ? 'bg-[#DB0B2B] text-[#FFFFFF]'
+                    : 'text-[#888888] hover:text-[#FFFFFF]'
+                }`}
+              >
+                <span>Tahunan</span>
+                <span className="text-[9px] font-bold text-[#FFFFFF]/90">Hemat 20%</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Pricing Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Free Tier */}
-            <div className="p-4 rounded-xl bg-[#181818] border border-[#262626] flex flex-col justify-between">
+            <div className="p-5 rounded-[4px] bg-[#141414] border border-white/10 flex flex-col justify-between">
               <div>
-                <div className="text-xs font-semibold uppercase text-[#888888] tracking-wider font-sora">
-                  Starter Plan
+                <div className="text-[11px] font-semibold uppercase text-[#888888] tracking-wider font-sora">
+                  Starter Studio
                 </div>
-                <div className="text-2xl font-bold text-white mt-1 font-sora">Free</div>
-                <p className="text-xs text-[#666666] mt-0.5">
-                  Untuk eksplorasi & mockup dasar
+                <div className="text-2xl font-extrabold text-[#FFFFFF] mt-1 font-sora">
+                  Free
+                </div>
+                <p className="text-xs text-[#888888] mt-1">
+                  Untuk eksplorasi mockup & preview 3D real-time.
                 </p>
 
-                <ul className="mt-4 space-y-2 text-xs text-[#aaaaaa]">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#666666]" />
-                    <span>Real-time 3D Canvas Editor</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#666666]" />
-                    <span>Standar T-Shirt Models</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-[#555555] line-through">
-                    <XMarkIcon className="w-3.5 h-3.5 text-[#555555]" />
-                    <span>Ekspor Resolusi Tinggi (HD)</span>
-                  </li>
-                  <li className="flex items-center gap-2 text-[#555555] line-through">
-                    <XMarkIcon className="w-3.5 h-3.5 text-[#555555]" />
-                    <span>360° Looping Video Export</span>
-                  </li>
-                </ul>
+                <div className="mt-4 pt-4 border-t border-white/10 space-y-2.5 text-xs text-[#CCCCCC]">
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                    <span>Real-time WebGL 3D Canvas</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                    <span>Standar T-Shirt Models (O-Neck & V-Neck)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#888888] shrink-0" />
+                    <span>Custom Fabric Colors & Specular Control</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#555555] line-through">
+                    <XMarkIcon className="w-3.5 h-3.5 text-[#555555] shrink-0" />
+                    <span>High-Resolution HD Image Export</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#555555] line-through">
+                    <XMarkIcon className="w-3.5 h-3.5 text-[#555555] shrink-0" />
+                    <span>360° Looping Video Render (WebCodecs)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#555555] line-through">
+                    <XMarkIcon className="w-3.5 h-3.5 text-[#555555] shrink-0" />
+                    <span>Hoodie & Premium Model Access</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-[#222222]">
-                <span className="text-xs text-[#666666]">
-                  {user.plan === 'free' ? 'Plan Aktif' : 'Free Tier'}
+              <div className="mt-6 pt-3 border-t border-white/10 flex items-center justify-between text-xs text-[#888888]">
+                <span>Status Saat Ini</span>
+                <span className="font-semibold text-[#FFFFFF]">
+                  {user.plan === 'free' ? 'Aktif' : 'Free Tier'}
                 </span>
               </div>
             </div>
 
-            {/* Pro Tier (Featured in #DB0B2B) */}
-            <div className="p-4 rounded-xl bg-[#1a1213] border-2 border-[#DB0B2B] flex flex-col justify-between relative shadow-xl shadow-[#DB0B2B]/10">
-              <div className="absolute -top-2.5 right-4 bg-[#DB0B2B] text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full tracking-wider font-sora">
-                POPULAR
-              </div>
-
+            {/* Pro Tier (Accent) */}
+            <div className="p-5 rounded-[4px] bg-[#181818] border-2 border-[#DB0B2B] flex flex-col justify-between relative">
               <div>
-                <div className="text-xs font-semibold uppercase text-[#DB0B2B] tracking-wider flex items-center gap-1 font-sora">
-                  <SparklesIcon className="w-3.5 h-3.5" />
-                  <span>Pro Studio</span>
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-bold uppercase text-[#DB0B2B] tracking-wider flex items-center gap-1 font-sora">
+                    <SparklesIcon className="w-3.5 h-3.5" />
+                    <span>Pro Studio</span>
+                  </div>
+                  <span className="text-[9.5px] font-extrabold uppercase px-1.5 py-0.5 rounded-[2px] bg-[#DB0B2B] text-[#FFFFFF] font-sora tracking-wide">
+                    RECOMMENDED
+                  </span>
                 </div>
-                <div className="text-2xl font-bold text-white mt-1 font-sora">
-                  Rp 149.000
-                  <span className="text-xs font-normal text-[#888888]">/bulan</span>
+
+                <div className="flex items-baseline gap-1 mt-1.5">
+                  <span className="text-2xl font-extrabold text-[#FFFFFF] font-sora">
+                    {billingCycle === 'annual' ? 'Rp 119.000' : 'Rp 149.000'}
+                  </span>
+                  <span className="text-xs text-[#888888]">/ bulan</span>
                 </div>
-                <p className="text-xs text-[#999999] mt-0.5">
-                  Akses tanpa batas untuk designer & agensi
+
+                <p className="text-xs text-[#CCCCCC] mt-1">
+                  Akses tak terbatas untuk tim kreatif & professional studio.
                 </p>
 
-                <ul className="mt-4 space-y-2 text-xs text-[#dddddd]">
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                    <span>Ultra HD 4K Image Render (Semua rasio)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                    <span>Ekspor Video 360° MP4 & WebM 60 FPS</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                    <span>Akses Seluruh Model (Jersey, Hoodie, Polo)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                    <span>Commercial Client Rights</span>
-                  </li>
-                </ul>
+                <div className="mt-4 pt-4 border-t border-white/10 space-y-2.5 text-xs text-[#CCCCCC]">
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span className="font-medium text-[#FFFFFF]">360° Looping Video Export (MP4 & WebM 60 FPS)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span className="font-medium text-[#FFFFFF]">Ultra HD 2K & 4K Multi-Ratio Snapshot Export</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span>Buka Seluruh Model: Hoodie, Polo, Long Sleeve, Athletic</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span>Priority GPU WebCodecs Video Encoder Pipeline</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span>Commercial Client Rights & Zero Watermarks</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
+                    <span>Multi-Rig Studio Lighting & Contact Shadows</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-[#2e1d1f]">
+              <div className="mt-6 pt-3 border-t border-white/10">
                 {user.plan === 'pro' ? (
-                  <div className="w-full py-2 rounded-lg bg-[#252525] text-center text-xs font-semibold text-green-400 font-sora">
-                    Aktif (Pro Member)
+                  <div className="w-full py-2.5 rounded-[4px] bg-[#141414] border border-[#10B981]/40 text-center text-xs font-semibold text-[#10B981] font-sora">
+                    ✓ Status Akun: Pro Member Aktif
                   </div>
                 ) : (
                   <button
                     id="upgrade-confirm-btn"
                     type="button"
                     onClick={handleUpgradeToPro}
-                    className="w-full py-2.5 rounded-lg bg-[#DB0B2B] hover:bg-[#f01436] active:bg-[#b00820] text-white text-xs font-bold transition-all shadow-md shadow-[#DB0B2B]/25 cursor-pointer flex items-center justify-center gap-1.5 font-sora"
+                    className="w-full py-2.5 px-4 rounded-[4px] bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820] text-[#FFFFFF] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 font-sora"
                   >
                     <StarIcon className="w-3.5 h-3.5" />
-                    <span>Aktifkan Pro Sekarang</span>
+                    <span>AKTIFKAN PRO STUDIO SEKARANG</span>
                   </button>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="text-center text-[11px] text-[#666666]">
-            Garansi kepuasan 14 hari. Batalkan kapan saja tanpa komitmen.
+          {/* Footer Guarantee */}
+          <div className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#888888] pt-2 border-t border-white/10 gap-2 text-center sm:text-left">
+            <div>
+              Garansi kepuasan 14 hari · Batalkan langganan kapan saja tanpa penalti
+            </div>
+            <div className="text-[#888888] font-mono text-[10px]">
+              Editor Suite Security · ISO 27001
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+export default UpgradeModal;

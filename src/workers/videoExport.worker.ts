@@ -60,14 +60,28 @@ self.onmessage = async (e: MessageEvent<WorkerInMessage>) => {
       }
 
       if (currentFormat === 'mp4') {
-        // Try H.264 profiles with prefer-hardware
-        const candidateCodecs = [
-          'avc1.4d002a', // Main Profile, Level 4.2
-          'avc1.64002a', // High Profile, Level 4.2
-          'avc1.42001f', // Baseline Profile, Level 3.1
-        ];
+        const codedArea = width * height;
+        // High to lower profiles and levels according to resolution area
+        const candidateCodecs = codedArea > 2228224
+          ? [
+              'avc1.640034', // High Profile, Level 5.2 (supports up to 4K)
+              'avc1.640033', // High Profile, Level 5.1
+              'avc1.4d0033', // Main Profile, Level 5.1
+              'avc1.640032', // High Profile, Level 5.0
+              'avc1.64002a', // High Profile, Level 4.2
+              'avc1.4d002a', // Main Profile, Level 4.2
+            ]
+          : [
+              'avc1.64002a', // High Profile, Level 4.2 (ideal for 1080p)
+              'avc1.4d002a', // Main Profile, Level 4.2
+              'avc1.640033', // High Profile, Level 5.1
+              'avc1.4d0033', // Main Profile, Level 5.1
+              'avc1.640028', // High Profile, Level 4.0
+              'avc1.4d0028', // Main Profile, Level 4.0
+              'avc1.42001f', // Baseline Profile, Level 3.1
+            ];
 
-        let selectedCodec = candidateCodecs[0];
+        let selectedCodec = '';
         let isHardware = false;
 
         for (const codec of candidateCodecs) {
@@ -88,6 +102,30 @@ self.onmessage = async (e: MessageEvent<WorkerInMessage>) => {
           } catch {
             // try next candidate
           }
+        }
+
+        // If hardware acceleration probe did not match, try without hardware constraint
+        if (!selectedCodec) {
+          for (const codec of candidateCodecs) {
+            try {
+              const support = await VideoEncoder.isConfigSupported({
+                codec,
+                width,
+                height,
+                bitrate,
+                framerate: fps,
+              });
+              if (support.supported) {
+                selectedCodec = codec;
+                isHardware = false;
+                break;
+              }
+            } catch {}
+          }
+        }
+
+        if (!selectedCodec) {
+          selectedCodec = codedArea > 2228224 ? 'avc1.640033' : 'avc1.4d002a';
         }
 
         mp4Muxer = new Mp4Muxer({
@@ -112,14 +150,37 @@ self.onmessage = async (e: MessageEvent<WorkerInMessage>) => {
           },
         });
 
-        encoder.configure({
-          codec: selectedCodec,
-          width,
-          height,
-          bitrate,
-          framerate: fps,
-          hardwareAcceleration: 'prefer-hardware',
-        });
+        try {
+          encoder.configure({
+            codec: selectedCodec,
+            width,
+            height,
+            bitrate,
+            framerate: fps,
+            hardwareAcceleration: isHardware ? 'prefer-hardware' : 'no-preference',
+          });
+        } catch (configErr: any) {
+          console.warn('Initial configure failed, attempting candidate fallback:', configErr);
+          let success = false;
+          for (const fallbackCodec of candidateCodecs) {
+            if (fallbackCodec === selectedCodec) continue;
+            try {
+              encoder.configure({
+                codec: fallbackCodec,
+                width,
+                height,
+                bitrate,
+                framerate: fps,
+              });
+              selectedCodec = fallbackCodec;
+              success = true;
+              break;
+            } catch {}
+          }
+          if (!success) {
+            throw configErr;
+          }
+        }
 
         self.postMessage({
           type: 'ready',

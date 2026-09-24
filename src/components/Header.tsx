@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="h-14 bg-black/45 backdrop-blur-2xl border-b border-white/10 px-4 flex items-center justify-between z-30 select-none font-geist shadow-sm">
+    <header className="h-14 bg-[#0A0A0A] border-b border-white/10 px-4 flex items-center justify-between z-30 select-none font-geist">
       {/* LEFT: Logo emblem, STUDIO V. 1.0, by EDITOR SUITE, Divider, 3D Model button */}
       <div className="flex items-center gap-3">
         {/* Red Owl Logo Emblem */}
@@ -45,16 +45,16 @@ export const Header: React.FC = () => {
           <img
             src={APP_CONFIG.assets.logo}
             alt="Editor Suite Logo"
-            className="w-8 h-8 rounded-[4px] object-contain shadow-sm shrink-0"
+            className="w-8 h-8 rounded-[4px] object-contain shrink-0"
           />
 
           {/* STUDIO V. 1.0 & by EDITOR SUITE */}
           <div className="flex flex-col justify-center leading-none">
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm text-white tracking-wider font-sora">
+              <span className="font-extrabold text-sm text-[#FFFFFF] tracking-wider font-sora">
                 STUDIO
               </span>
-              <span className="px-1.5 py-0.5 rounded-full border border-[#DB0B2B] text-[9.5px] font-bold text-[#DB0B2B] leading-none tracking-tight">
+              <span className="px-1.5 py-0.5 rounded-[2px] border border-[#DB0B2B] text-[9.5px] font-bold text-[#DB0B2B] leading-none tracking-tight">
                 V. 1.0
               </span>
             </div>
@@ -73,7 +73,7 @@ export const Header: React.FC = () => {
             id="model-selector-btn"
             type="button"
             onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 active:bg-white/5 px-3.5 py-1.5 rounded-[4px] border border-white/10 text-xs font-medium text-white transition-all cursor-pointer backdrop-blur-md"
+            className="flex items-center gap-2 bg-[#141414] hover:bg-[#181818] active:bg-[#141414] px-3.5 py-1.5 rounded-[4px] border border-white/10 hover:border-white/15 text-xs font-medium text-[#FFFFFF] transition-all cursor-pointer"
           >
             <CubeIcon className="w-4 h-4 text-[#DB0B2B]" />
             <span>3D Model</span>
@@ -81,8 +81,8 @@ export const Header: React.FC = () => {
           </button>
 
           {modelDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1.5 w-48 bg-black/85 backdrop-blur-2xl border border-white/15 rounded-[4px] shadow-2xl py-1 z-50">
-              <div className="px-3 py-1.5 text-[10px] font-semibold text-[#888888] uppercase tracking-wider font-sora border-b border-white/5">
+            <div className="absolute top-full left-0 mt-1.5 w-52 bg-[#141414] border border-white/15 rounded-[4px] shadow-2xl py-1 z-50">
+              <div className="px-3 py-1.5 text-[10px] font-semibold text-[#888888] uppercase tracking-wider font-sora border-b border-white/10">
                 Select 3D Garment
               </div>
               {models.map((m) => (
@@ -99,13 +99,13 @@ export const Header: React.FC = () => {
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2 text-xs text-left transition-colors cursor-pointer ${
                     currentModel === m.id
-                      ? 'bg-white/15 text-white font-semibold text-[#DB0B2B]'
-                      : 'text-[#cccccc] hover:bg-white/10 hover:text-white'
+                      ? 'bg-[#1E1E1E] text-[#DB0B2B] font-semibold'
+                      : 'text-[#CCCCCC] hover:bg-[#181818] hover:text-[#FFFFFF]'
                   }`}
                 >
                   <span>{m.name}</span>
                   {m.tag && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-[2px] bg-[#DB0B2B]/20 text-[#DB0B2B] border border-[#DB0B2B]/40 font-sora">
+                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-[2px] bg-[#DB0B2B]/15 text-[#DB0B2B] border border-[#DB0B2B]/40 font-sora">
                       {m.tag}
                     </span>
                   )}
@@ -123,9 +123,9 @@ export const Header: React.FC = () => {
           id="header-export-btn"
           type="button"
           onClick={() => setExportModalOpen(true)}
-          className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 active:bg-white/5 px-3.5 py-1.5 rounded-[4px] border border-white/10 text-xs font-semibold text-white transition-all cursor-pointer font-sora backdrop-blur-md"
+          className="flex items-center gap-1.5 bg-[#141414] hover:bg-[#181818] active:bg-[#141414] px-3.5 py-1.5 rounded-[4px] border border-white/10 hover:border-white/15 text-xs font-semibold text-[#FFFFFF] transition-all cursor-pointer font-sora"
         >
-          <ArrowDownTrayIcon className="w-3.5 h-3.5 text-white" />
+          <ArrowDownTrayIcon className="w-3.5 h-3.5 text-[#FFFFFF]" />
           <span>EXPORT</span>
         </button>
 
@@ -134,7 +134,7 @@ export const Header: React.FC = () => {
           id="header-upgrade-btn"
           type="button"
           onClick={() => setUpgradeModalOpen(true)}
-          className="flex items-center gap-1.5 bg-black/40 hover:bg-[#DB0B2B]/15 active:bg-black/60 border border-[#DB0B2B]/70 px-3 py-1.5 rounded-[4px] text-xs font-bold text-[#DB0B2B] transition-all cursor-pointer font-sora shadow-xs backdrop-blur-md"
+          className="flex items-center gap-1.5 bg-[#DB0B2B]/15 hover:bg-[#DB0B2B]/25 active:bg-[#DB0B2B]/30 border border-[#DB0B2B] px-3 py-1.5 rounded-[4px] text-xs font-bold text-[#DB0B2B] transition-all cursor-pointer font-sora"
         >
           <StarIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
           <span>PRO</span>
@@ -146,7 +146,7 @@ export const Header: React.FC = () => {
             id="user-profile-btn"
             type="button"
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            className="w-8 h-8 rounded-[4px] border border-white/15 hover:border-white/30 overflow-hidden flex items-center justify-center bg-white/5 backdrop-blur-md transition-all cursor-pointer"
+            className="w-8 h-8 rounded-[4px] border border-white/10 hover:border-white/15 overflow-hidden flex items-center justify-center bg-[#141414] hover:bg-[#181818] transition-all cursor-pointer"
           >
             {user.avatarUrl ? (
               <img
@@ -160,10 +160,10 @@ export const Header: React.FC = () => {
           </button>
 
           {profileDropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 w-64 bg-black/85 backdrop-blur-2xl border border-white/15 rounded-[4px] shadow-2xl py-2 z-50 divide-y divide-white/10">
+            <div className="absolute top-full right-0 mt-2 w-64 bg-[#141414] border border-white/15 rounded-[4px] shadow-2xl py-2 z-50 divide-y divide-white/10">
               {/* User Info */}
               <div className="px-3.5 py-2.5">
-                <div className="text-xs font-semibold text-white truncate font-sora">
+                <div className="text-xs font-semibold text-[#FFFFFF] truncate font-sora">
                   {user.name}
                 </div>
                 <div className="text-[11px] text-[#888888] truncate">
@@ -173,8 +173,8 @@ export const Header: React.FC = () => {
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-[2px] uppercase tracking-wider font-sora ${
                       user.plan === 'pro'
-                        ? 'bg-[#DB0B2B]/20 text-[#DB0B2B] border border-[#DB0B2B]/40'
-                        : 'bg-[#252525] text-[#aaaaaa]'
+                        ? 'bg-[#DB0B2B]/15 text-[#DB0B2B] border border-[#DB0B2B]/40'
+                        : 'bg-[#181818] text-[#888888] border border-white/10'
                     }`}
                   >
                     {user.plan === 'pro' ? 'Pro Member' : 'Free Tier'}
@@ -184,7 +184,7 @@ export const Header: React.FC = () => {
                     onClick={() =>
                       setUserPlan(user.plan === 'free' ? 'pro' : 'free')
                     }
-                    className="text-[11px] text-[#DB0B2B] hover:underline cursor-pointer"
+                    className="text-[11px] text-[#DB0B2B] hover:text-[#F01436] active:text-[#B00820] cursor-pointer"
                   >
                     Switch to {user.plan === 'free' ? 'Pro' : 'Free'}
                   </button>
@@ -199,7 +199,7 @@ export const Header: React.FC = () => {
                     setUserDashboardOpen(true);
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#cccccc] hover:bg-[#1c1c1c] hover:text-white transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#CCCCCC] hover:bg-[#1E1E1E] hover:text-[#FFFFFF] transition-colors text-left cursor-pointer"
                 >
                   <Squares2X2Icon className="w-4 h-4 text-[#888888]" />
                   <span>User Dashboard</span>
@@ -211,7 +211,7 @@ export const Header: React.FC = () => {
                     setAdminDashboardOpen(true);
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#cccccc] hover:bg-[#1c1c1c] hover:text-white transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#CCCCCC] hover:bg-[#1E1E1E] hover:text-[#FFFFFF] transition-colors text-left cursor-pointer"
                 >
                   <ShieldCheckIcon className="w-4 h-4 text-[#888888]" />
                   <span>Admin Panel</span>
@@ -226,7 +226,7 @@ export const Header: React.FC = () => {
                     setAuthModalOpen(true);
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#cccccc] hover:bg-[#1c1c1c] hover:text-white transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#CCCCCC] hover:bg-[#1E1E1E] hover:text-[#FFFFFF] transition-colors text-left cursor-pointer"
                 >
                   <SparklesIcon className="w-4 h-4 text-[#888888]" />
                   <span>Sign In / Register</span>
@@ -238,7 +238,7 @@ export const Header: React.FC = () => {
                     logout();
                     setProfileDropdownOpen(false);
                   }}
-                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#ff5555] hover:bg-[#1c1c1c] transition-colors text-left cursor-pointer"
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs text-[#EF4444] hover:bg-[#1E1E1E] transition-colors text-left cursor-pointer"
                 >
                   <ArrowRightOnRectangleIcon className="w-4 h-4" />
                   <span>Sign Out</span>

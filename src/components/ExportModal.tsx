@@ -10,11 +10,13 @@ import {
   ArrowPathIcon,
   BoltIcon,
   StopIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/20/solid';
 import { AspectRatio } from '../types';
 import { exportImage, exportTurntableVideo, cancelCurrentExport } from '../lib/exportEngine';
 import { TextureCompositor } from '../lib/textureCompositor';
+import { APP_CONFIG } from '../config/constants';
 
 export const ExportModal: React.FC = () => {
   const exportModalOpen = useEditorStore((s) => s.exportModalOpen);
@@ -27,12 +29,13 @@ export const ExportModal: React.FC = () => {
   const scene = useEditorStore((s) => s.scene);
   const cameraPreset = useEditorStore((s) => s.cameraPreset);
   const animationEasing = useEditorStore((s) => s.animationEasing);
+  const timelineTime = useEditorStore((s) => s.timelineTime);
   const layers = useEditorStore((s) => s.layers);
   const showUVGuide = useEditorStore((s) => s.showUVGuide);
   const exportProgress = useEditorStore((s) => s.exportProgress);
   const setExportProgress = useEditorStore((s) => s.setExportProgress);
 
-  const [activeTab, setActiveTab] = useState<'IMAGES' | 'VIDEO'>('VIDEO');
+  const [activeTab, setActiveTab] = useState<'VIDEO' | 'IMAGES'>('VIDEO');
   const [imageFormat, setImageFormat] = useState<'png' | 'jpeg'>('png');
   const [videoFormat, setVideoFormat] = useState<'mp4' | 'webm'>('mp4');
   const [selectedRatio, setSelectedRatio] = useState<AspectRatio>('16:9');
@@ -62,12 +65,29 @@ export const ExportModal: React.FC = () => {
         isExporting: true,
         type: 'image',
         stage: 'rendering',
-        percent: 50,
-        message: 'Rendering high-resolution snapshot...',
+        percent: 30,
+        message: 'Rendering high-resolution 3D snapshot...',
       });
 
       try {
-        await exportImage(rendererCanvas, imageFormat, selectedRatio, transparentBg);
+        const compositor = new TextureCompositor(2048, 2048);
+        await compositor.compose(material, layers, showUVGuide);
+
+        await exportImage({
+          sourceCanvas: rendererCanvas,
+          format: imageFormat,
+          ratio: selectedRatio,
+          transparent: transparentBg,
+          sceneSettings: scene,
+          modelType: currentModel,
+          material,
+          cameraPreset,
+          colorTextureCanvas: compositor.getCanvas(),
+          bumpTextureCanvas: compositor.getBumpCanvas(),
+          timelineTime,
+          animationEasing,
+        });
+
         setExportProgress({
           isExporting: false,
           stage: 'complete',
@@ -90,7 +110,6 @@ export const ExportModal: React.FC = () => {
           message: 'Initializing GPU texture compositor...',
         });
 
-        // Compose active jersey texture layers into canvas
         const compositor = new TextureCompositor(2048, 2048);
         await compositor.compose(material, layers, showUVGuide);
 
@@ -113,14 +132,12 @@ export const ExportModal: React.FC = () => {
           },
         });
 
-        // Close modal on complete after a brief confirmation
         setTimeout(() => {
           setExportProgress({ isExporting: false, stage: 'idle', percent: 0, message: '' });
           setExportModalOpen(false);
         }, 1200);
       } catch (err: any) {
         console.error('Video export error:', err);
-        // Error or cancelled state is already captured by onProgress
       }
     }
   };
@@ -136,62 +153,85 @@ export const ExportModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 select-none animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-[#121212]/95 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col backdrop-blur-2xl">
-        {/* Top Header with Tabs & Close button */}
-        <div className="flex items-center justify-between px-5 pt-4 pb-2 border-b border-white/10">
-          <div className="flex items-center gap-6">
-            <button
-              type="button"
-              disabled={exportProgress.isExporting}
-              onClick={() => setActiveTab('VIDEO')}
-              className={`pb-2 text-xs font-bold tracking-wider transition-colors relative cursor-pointer disabled:opacity-50 ${
-                activeTab === 'VIDEO'
-                  ? 'text-white'
-                  : 'text-[#666666] hover:text-[#999999]'
-              }`}
-            >
-              VIDEO (360°)
-              {activeTab === 'VIDEO' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#DB0B2B]" />
-              )}
-            </button>
-
-            <button
-              type="button"
-              disabled={exportProgress.isExporting}
-              onClick={() => setActiveTab('IMAGES')}
-              className={`pb-2 text-xs font-bold tracking-wider transition-colors relative cursor-pointer disabled:opacity-50 ${
-                activeTab === 'IMAGES'
-                  ? 'text-white'
-                  : 'text-[#666666] hover:text-[#999999]'
-              }`}
-            >
-              IMAGES
-              {activeTab === 'IMAGES' && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#DB0B2B]" />
-              )}
-            </button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 select-none animate-in fade-in duration-200">
+      <div className="w-full max-w-lg bg-[#0A0A0A] border border-white/15 rounded-[6px] shadow-2xl overflow-hidden flex flex-col">
+        {/* Top Header */}
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 bg-[#000000]">
+          <div className="flex items-center gap-2.5">
+            <img
+              src={APP_CONFIG.assets.logo}
+              alt="Editor Suite"
+              className="w-5 h-5 rounded-[2px] object-contain shrink-0"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#FFFFFF] tracking-wider font-sora">
+                  EXPORT STUDIO
+                </span>
+                <span className="text-[10px] text-[#DB0B2B] font-mono font-semibold">
+                  · 3D ASSETS
+                </span>
+              </div>
+              <span className="text-[10px] text-[#888888] font-normal tracking-tight">
+                {APP_CONFIG.tagline}
+              </span>
+            </div>
           </div>
 
           <button
             type="button"
             disabled={exportProgress.isExporting}
             onClick={() => setExportModalOpen(false)}
-            className="p-1 rounded-lg text-[#777777] hover:text-white hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="w-7 h-7 flex items-center justify-center rounded-[4px] border border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <XMarkIcon className="w-5 h-5" />
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
+        {/* Tab Switcher: Segmented Control */}
+        <div className="px-5 pt-3 pb-2 bg-[#0A0A0A] border-b border-white/5">
+          <div className="grid grid-cols-2 p-1 bg-[#141414] rounded-[4px] border border-white/10 gap-1">
+            <button
+              type="button"
+              disabled={exportProgress.isExporting}
+              onClick={() => setActiveTab('VIDEO')}
+              className={`py-1.5 px-3 rounded-[3px] text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 font-sora ${
+                activeTab === 'VIDEO'
+                  ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                  : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] border border-transparent'
+              }`}
+            >
+              <VideoCameraIcon className={`w-3.5 h-3.5 ${activeTab === 'VIDEO' ? 'text-[#DB0B2B]' : 'text-current'}`} />
+              <span>360° VIDEO LOOP</span>
+            </button>
+
+            <button
+              type="button"
+              disabled={exportProgress.isExporting}
+              onClick={() => setActiveTab('IMAGES')}
+              className={`py-1.5 px-3 rounded-[3px] text-xs font-semibold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 font-sora ${
+                activeTab === 'IMAGES'
+                  ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                  : 'text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818] border border-transparent'
+              }`}
+            >
+              <PhotoIcon className={`w-3.5 h-3.5 ${activeTab === 'IMAGES' ? 'text-[#DB0B2B]' : 'text-current'}`} />
+              <span>HD IMAGE SNAPSHOT</span>
+            </button>
+          </div>
+        </div>
+
         {/* Modal Body */}
-        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
           {/* Gatekeeping Banner for Free users */}
           {user.plan === 'free' && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#1c1415] border border-[#DB0B2B]/30 text-xs">
-              <div className="flex items-center gap-2 text-[#cccccc]">
-                <LockClosedIcon className="w-4 h-4 text-[#DB0B2B]" />
-                <span className="font-medium">Fitur export dikunci</span>
+            <div className="flex items-center justify-between p-3 rounded-[4px] bg-[#181818] border border-[#DB0B2B]/40 text-xs">
+              <div className="flex items-center gap-2.5 text-[#CCCCCC]">
+                <LockClosedIcon className="w-4 h-4 text-[#DB0B2B] shrink-0" />
+                <div>
+                  <div className="font-semibold text-[#FFFFFF]">Fitur Studio Export Terkunci</div>
+                  <div className="text-[11px] text-[#888888]">Upgrade ke Pro untuk ekspor render tanpa batas & video 360°</div>
+                </div>
               </div>
               <button
                 type="button"
@@ -199,24 +239,25 @@ export const ExportModal: React.FC = () => {
                   setExportModalOpen(false);
                   setUpgradeModalOpen(true);
                 }}
-                className="text-[11px] font-bold text-[#DB0B2B] hover:underline font-sora cursor-pointer"
+                className="px-2.5 py-1 rounded-[3px] bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820] text-[#FFFFFF] text-[11px] font-bold font-sora cursor-pointer shrink-0 transition-colors"
               >
-                Upgrade
+                Upgrade Pro
               </button>
             </div>
           )}
 
           {/* Format Selection */}
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[#888888]">Format Kontainer</span>
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[#888888] font-medium">Output Format</span>
               {activeTab === 'VIDEO' && videoFormat === 'mp4' && (
-                <span className="flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/20 px-1.5 py-0.5 rounded-full font-mono">
-                  <BoltIcon className="w-3 h-3 text-emerald-400" />
-                  Hardware H.264
+                <span className="text-[10px] text-[#10B981] font-mono flex items-center gap-1">
+                  <BoltIcon className="w-3 h-3 text-[#10B981]" />
+                  Hardware AVC/H.264
                 </span>
               )}
             </div>
+
             <div className="grid grid-cols-2 gap-2">
               {activeTab === 'IMAGES' ? (
                 <>
@@ -224,30 +265,37 @@ export const ExportModal: React.FC = () => {
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setImageFormat('png')}
-                    className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-3 rounded-[4px] border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       imageFormat === 'png'
-                        ? 'bg-white/15 border-[#DB0B2B] text-white shadow-xs'
-                        : 'bg-black/40 border-white/10 text-[#888888] hover:text-white hover:bg-white/5'
+                        ? 'bg-[#181818] border-[#DB0B2B] text-[#FFFFFF]'
+                        : 'bg-[#141414] border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                     }`}
                   >
-                    <span>PNG (Lossless)</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-sora text-[#FFFFFF]">PNG</span>
+                      <span className="text-[10px] text-[#888888] font-normal">Lossless · Alpha Transparency</span>
+                    </div>
                     {imageFormat === 'png' && (
-                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
+                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
                     )}
                   </button>
+
                   <button
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setImageFormat('jpeg')}
-                    className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-3 rounded-[4px] border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       imageFormat === 'jpeg'
-                        ? 'bg-white/15 border-[#DB0B2B] text-white shadow-xs'
-                        : 'bg-black/40 border-white/10 text-[#888888] hover:text-white hover:bg-white/5'
+                        ? 'bg-[#181818] border-[#DB0B2B] text-[#FFFFFF]'
+                        : 'bg-[#141414] border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                     }`}
                   >
-                    <span>JPG (Compressed)</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-sora text-[#FFFFFF]">JPG</span>
+                      <span className="text-[10px] text-[#888888] font-normal">Compressed · Solid Background</span>
+                    </div>
                     {imageFormat === 'jpeg' && (
-                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
+                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
                     )}
                   </button>
                 </>
@@ -257,30 +305,37 @@ export const ExportModal: React.FC = () => {
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setVideoFormat('mp4')}
-                    className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-3 rounded-[4px] border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       videoFormat === 'mp4'
-                        ? 'bg-white/15 border-[#DB0B2B] text-white shadow-xs'
-                        : 'bg-black/40 border-white/10 text-[#888888] hover:text-white hover:bg-white/5'
+                        ? 'bg-[#181818] border-[#DB0B2B] text-[#FFFFFF]'
+                        : 'bg-[#141414] border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                     }`}
                   >
-                    <span>MP4 (H.264 Universal)</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-sora text-[#FFFFFF]">MP4 Video</span>
+                      <span className="text-[10px] text-[#888888] font-normal">H.264 Universal · Web & Social</span>
+                    </div>
                     {videoFormat === 'mp4' && (
-                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
+                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
                     )}
                   </button>
+
                   <button
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setVideoFormat('webm')}
-                    className={`py-2 px-3 rounded-lg border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`py-2 px-3 rounded-[4px] border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       videoFormat === 'webm'
-                        ? 'bg-white/15 border-[#DB0B2B] text-white shadow-xs'
-                        : 'bg-black/40 border-white/10 text-[#888888] hover:text-white hover:bg-white/5'
+                        ? 'bg-[#181818] border-[#DB0B2B] text-[#FFFFFF]'
+                        : 'bg-[#141414] border-white/10 text-[#888888] hover:text-[#FFFFFF] hover:bg-[#181818]'
                     }`}
                   >
-                    <span>WEBM (VP9 / Alpha)</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-sora text-[#FFFFFF]">WEBM Video</span>
+                      <span className="text-[10px] text-[#888888] font-normal">VP9 · Alpha Transparent Video</span>
+                    </div>
                     {videoFormat === 'webm' && (
-                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
+                      <CheckIcon className="w-3.5 h-3.5 text-[#DB0B2B] shrink-0" />
                     )}
                   </button>
                 </>
@@ -290,7 +345,7 @@ export const ExportModal: React.FC = () => {
 
           {/* Aspect Ratio Selector */}
           <div className="space-y-1.5">
-            <span className="text-xs text-[#888888]">Aspect Ratio</span>
+            <span className="text-xs text-[#888888] font-medium">Aspect Ratio</span>
             <div className="grid grid-cols-4 gap-2">
               {ratios.map((r) => {
                 const isSelected = selectedRatio === r.id;
@@ -300,20 +355,20 @@ export const ExportModal: React.FC = () => {
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setSelectedRatio(r.id)}
-                    className={`p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 ${
+                    className={`p-2.5 rounded-[4px] border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 ${
                       isSelected
-                        ? 'bg-white/15 border-[#DB0B2B] text-white shadow-xs'
-                        : 'bg-black/40 border-white/10 text-[#777777] hover:border-white/20 hover:text-white'
+                        ? 'bg-[#181818] border-[#DB0B2B] text-[#FFFFFF]'
+                        : 'bg-[#141414] border-white/10 text-[#888888] hover:border-white/20 hover:text-[#FFFFFF] hover:bg-[#181818]'
                     }`}
                   >
                     <div
-                      className={`${r.iconW} ${r.iconH} border rounded-xs ${
-                        isSelected ? 'border-[#DB0B2B]' : 'border-[#555555]'
+                      className={`${r.iconW} ${r.iconH} border rounded-[2px] ${
+                        isSelected ? 'border-[#DB0B2B] bg-[#DB0B2B]/15' : 'border-white/20'
                       }`}
                     />
-                    <div className="text-center">
-                      <div className="text-[11px] font-bold">{r.id}</div>
-                      <div className="text-[9px] text-[#666666]">{r.name}</div>
+                    <div className="text-center leading-tight">
+                      <div className="text-[11px] font-bold font-sora">{r.id}</div>
+                      <div className="text-[9px] text-[#888888]">{r.name}</div>
                     </div>
                   </button>
                 );
@@ -323,18 +378,18 @@ export const ExportModal: React.FC = () => {
 
           {/* Video Options: Frame Rate & Duration */}
           {activeTab === 'VIDEO' && (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <span className="text-xs text-[#888888]">Frame Rate</span>
-                <div className="grid grid-cols-2 gap-1.5">
+                <span className="text-xs text-[#888888] font-medium">Frame Rate</span>
+                <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#141414] rounded-[4px] border border-white/10">
                   <button
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setVideoFps(60)}
-                    className={`py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    className={`py-1 text-xs font-semibold rounded-[3px] transition-colors cursor-pointer ${
                       videoFps === 60
-                        ? 'bg-[#DB0B2B] text-white border-[#DB0B2B]'
-                        : 'bg-black/40 text-[#888888] border-white/10 hover:text-white'
+                        ? 'bg-[#DB0B2B] text-[#FFFFFF]'
+                        : 'text-[#888888] hover:text-[#FFFFFF]'
                     }`}
                   >
                     60 FPS
@@ -343,10 +398,10 @@ export const ExportModal: React.FC = () => {
                     type="button"
                     disabled={exportProgress.isExporting}
                     onClick={() => setVideoFps(30)}
-                    className={`py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    className={`py-1 text-xs font-semibold rounded-[3px] transition-colors cursor-pointer ${
                       videoFps === 30
-                        ? 'bg-[#DB0B2B] text-white border-[#DB0B2B]'
-                        : 'bg-black/40 text-[#888888] border-white/10 hover:text-white'
+                        ? 'bg-[#DB0B2B] text-[#FFFFFF]'
+                        : 'text-[#888888] hover:text-[#FFFFFF]'
                     }`}
                   >
                     30 FPS
@@ -355,18 +410,18 @@ export const ExportModal: React.FC = () => {
               </div>
 
               <div className="space-y-1.5">
-                <span className="text-xs text-[#888888]">Durasi Loop</span>
-                <div className="grid grid-cols-3 gap-1">
+                <span className="text-xs text-[#888888] font-medium">Turntable Loop</span>
+                <div className="grid grid-cols-3 gap-1 p-1 bg-[#141414] rounded-[4px] border border-white/10">
                   {[5, 6, 8].map((sec) => (
                     <button
                       key={sec}
                       type="button"
                       disabled={exportProgress.isExporting}
                       onClick={() => setVideoDuration(sec)}
-                      className={`py-1.5 text-xs font-mono font-medium rounded-lg border transition-colors cursor-pointer ${
+                      className={`py-1 text-xs font-mono font-medium rounded-[3px] transition-colors cursor-pointer ${
                         videoDuration === sec
-                          ? 'bg-white/20 text-white border-white/30'
-                          : 'bg-black/40 text-[#888888] border-white/10 hover:text-white'
+                          ? 'bg-[#1E1E1E] text-[#FFFFFF] border border-white/15'
+                          : 'text-[#888888] hover:text-[#FFFFFF]'
                       }`}
                     >
                       {sec}s
@@ -377,14 +432,14 @@ export const ExportModal: React.FC = () => {
             </div>
           )}
 
-          {/* Transparent Background switch (only for PNG images or WebM video) */}
-          {(activeTab === 'IMAGES' && imageFormat === 'png') || (activeTab === 'VIDEO' && videoFormat === 'webm') ? (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/40 border border-white/10">
+          {/* Transparent Background switch */}
+          {((activeTab === 'IMAGES' && imageFormat === 'png') || (activeTab === 'VIDEO' && videoFormat === 'webm')) && (
+            <div className="flex items-center justify-between p-3 rounded-[4px] bg-[#141414] border border-white/10">
               <div>
-                <div className="text-xs font-medium text-white">
+                <div className="text-xs font-medium text-[#FFFFFF]">
                   Transparent Background
                 </div>
-                <div className="text-[10px] text-[#777777]">
+                <div className="text-[10px] text-[#888888]">
                   Hapus background canvas saat diekspor (Alpha Channel)
                 </div>
               </div>
@@ -392,39 +447,39 @@ export const ExportModal: React.FC = () => {
                 type="button"
                 disabled={exportProgress.isExporting}
                 onClick={() => setTransparentBg(!transparentBg)}
-                className={`w-9 h-5 rounded-full transition-colors relative flex items-center px-0.5 cursor-pointer disabled:opacity-50 ${
-                  transparentBg ? 'bg-[#DB0B2B]' : 'bg-[#292929]'
+                className={`w-9 h-5 rounded-[3px] transition-colors relative flex items-center px-0.5 cursor-pointer disabled:opacity-50 ${
+                  transparentBg ? 'bg-[#DB0B2B]' : 'bg-[#1E1E1E] border border-white/15'
                 }`}
               >
                 <span
-                  className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                  className={`w-4 h-4 rounded-[2px] bg-[#FFFFFF] transition-transform ${
                     transparentBg ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
               </button>
             </div>
-          ) : null}
+          )}
 
-          {/* Video 360 degree loop notes & architecture info */}
+          {/* Video architecture info */}
           {activeTab === 'VIDEO' && !exportProgress.isExporting && (
-            <div className="p-3 rounded-xl bg-black/40 border border-white/10 text-xs text-[#888888] space-y-1.5">
-              <div className="font-semibold text-white flex items-center gap-1.5 font-sora">
+            <div className="p-3 rounded-[4px] bg-[#141414] border border-white/10 text-xs text-[#888888] space-y-1">
+              <div className="font-semibold text-[#FFFFFF] flex items-center gap-1.5 font-sora">
                 <SparklesIcon className="w-3.5 h-3.5 text-[#DB0B2B]" />
-                <span>360° Seamless Turntable Loop</span>
+                <span>Synchronized 3D Viewport Video</span>
               </div>
-              <p className="text-[11px] text-[#aaaaaa] leading-relaxed">
-                Merender frame-by-frame 3D jersey ke <span className="text-white font-mono">OffscreenCanvas</span> dan di-encode di background via <span className="text-white font-mono">WebCodecs VideoEncoder</span> di Web Worker tanpa memblokir UI editor.
+              <p className="text-[11px] text-[#CCCCCC] leading-relaxed">
+                OffscreenCanvas rendering disinkronkan dengan posisi kamera viewport, lighting studio, dan materi kain aktif menggunakan WebCodecs GPU worker.
               </p>
             </div>
           )}
 
           {/* Live Export Progress with Encoding Status & Cancel Button */}
           {exportProgress.isExporting && (
-            <div className="p-3.5 rounded-xl bg-black/60 border border-white/15 space-y-3 backdrop-blur-md animate-in fade-in">
-              <div className="flex items-center justify-between text-xs font-semibold text-white">
+            <div className="p-3.5 rounded-[4px] bg-[#0A0A0A] border border-white/15 space-y-2.5 animate-in fade-in">
+              <div className="flex items-center justify-between text-xs font-semibold text-[#FFFFFF]">
                 <div className="flex items-center gap-2">
                   <ArrowPathIcon className="w-4 h-4 text-[#DB0B2B] animate-spin shrink-0" />
-                  <span className="truncate max-w-[210px]">{exportProgress.message}</span>
+                  <span className="truncate max-w-[240px] text-xs font-mono">{exportProgress.message}</span>
                 </div>
                 <span className="font-mono text-[#DB0B2B] text-sm font-bold">
                   {exportProgress.percent}%
@@ -432,9 +487,9 @@ export const ExportModal: React.FC = () => {
               </div>
 
               {/* Progress bar */}
-              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="w-full h-1.5 rounded-[2px] bg-white/10 overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-[#DB0B2B] to-[#ff4767] transition-all duration-150 rounded-full"
+                  className="h-full bg-[#DB0B2B] transition-all duration-150 rounded-[2px]"
                   style={{ width: `${exportProgress.percent}%` }}
                 />
               </div>
@@ -444,10 +499,10 @@ export const ExportModal: React.FC = () => {
                 <span className="font-mono">
                   {exportProgress.frameCurrent && exportProgress.frameTotal
                     ? `Frame ${exportProgress.frameCurrent} / ${exportProgress.frameTotal}`
-                    : 'Worker active'}
+                    : 'Pipeline Active'}
                 </span>
-                <span className="text-emerald-400 font-mono text-[10px] bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/20">
-                  {exportProgress.encoderType || 'WebCodecs GPU'}
+                <span className="text-[#10B981] font-mono text-[10px] bg-[#10B981]/10 px-1.5 py-0.5 rounded-[2px] border border-[#10B981]/20">
+                  {exportProgress.encoderType || 'WebCodecs AVC'}
                 </span>
               </div>
 
@@ -455,10 +510,10 @@ export const ExportModal: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCancelExport}
-                className="w-full py-2 px-3 rounded-lg bg-red-950/30 hover:bg-red-900/50 active:bg-red-950/60 border border-red-500/30 hover:border-red-500/50 text-red-200 text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer font-sora mt-1"
+                className="w-full py-1.5 px-3 rounded-[3px] bg-[#181818] hover:bg-[#1E1E1E] border border-[#EF4444]/40 text-[#EF4444] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer font-sora mt-1"
               >
-                <StopIcon className="w-3.5 h-3.5 text-red-400" />
-                <span>Batalkan Export (Cancel)</span>
+                <StopIcon className="w-3.5 h-3.5 text-[#EF4444]" />
+                <span>Batalkan Export</span>
               </button>
             </div>
           )}
@@ -469,22 +524,22 @@ export const ExportModal: React.FC = () => {
               id="export-modal-cta-btn"
               type="button"
               onClick={handleStartExport}
-              className="w-full py-3 px-4 rounded-xl bg-[#DB0B2B] hover:bg-[#f01436] active:bg-[#b00820] text-white text-xs font-bold tracking-wide transition-all shadow-lg shadow-[#DB0B2B]/25 cursor-pointer flex items-center justify-center gap-2 font-sora"
+              className="w-full py-2.5 px-4 rounded-[4px] bg-[#DB0B2B] hover:bg-[#F01436] active:bg-[#B00820] text-[#FFFFFF] text-xs font-bold tracking-wide transition-all cursor-pointer flex items-center justify-center gap-2 font-sora"
             >
               {user.plan === 'free' ? (
                 <>
-                  <StarIcon className="w-4 h-4 text-white" />
-                  <span>Upgrade Sekarang</span>
+                  <StarIcon className="w-4 h-4 text-[#FFFFFF]" />
+                  <span>UPGRADE TO PRO</span>
                 </>
               ) : activeTab === 'IMAGES' ? (
                 <>
-                  <PhotoIcon className="w-4 h-4" />
-                  <span>Download HD Image ({selectedRatio})</span>
+                  <ArrowDownTrayIcon className="w-4 h-4" />
+                  <span>EXPORT IMAGE ({imageFormat.toUpperCase()} · {selectedRatio})</span>
                 </>
               ) : (
                 <>
                   <VideoCameraIcon className="w-4 h-4" />
-                  <span>Render 360° Looping Video ({videoFormat.toUpperCase()})</span>
+                  <span>RENDER 360° VIDEO ({videoFormat.toUpperCase()} · {videoFps} FPS)</span>
                 </>
               )}
             </button>

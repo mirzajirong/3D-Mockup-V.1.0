@@ -16,17 +16,17 @@ export const MaterialPanel: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-col gap-3 p-4 text-white overflow-y-auto max-h-full font-geist">
+    <div className="flex flex-col gap-3 p-4 text-[#FFFFFF] overflow-y-auto max-h-full font-geist">
       {/* 1. Base Fabric Color */}
-      <div className="bg-black/35 backdrop-blur-md rounded-[4px] border border-white/10 p-3 space-y-2.5">
+      <div className="bg-[#141414] rounded-[4px] border border-white/10 p-3 space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-white">Fabric Base Color</span>
-          <label className="relative flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2.5 py-1 rounded-[4px] border border-white/10 cursor-pointer transition-colors">
+          <span className="text-xs font-medium text-[#FFFFFF]">Fabric Base Color</span>
+          <label className="relative flex items-center gap-2 bg-[#181818] hover:bg-[#1E1E1E] px-2.5 py-1 rounded-[4px] border border-white/10 hover:border-white/15 cursor-pointer transition-colors">
             <span
               className="w-3.5 h-3.5 rounded-[2px] border border-white/20 shrink-0"
               style={{ backgroundColor: material.fabricColor }}
             />
-            <span className="font-mono text-xs text-white uppercase tracking-wider">
+            <span className="font-mono text-xs text-[#FFFFFF] uppercase tracking-wider">
               {material.fabricColor}
             </span>
             <input
@@ -48,8 +48,8 @@ export const MaterialPanel: React.FC = () => {
               onClick={() => updateMaterial({ fabricColor: preset.color })}
               className={`h-6 rounded-[3px] border transition-all cursor-pointer ${
                 material.fabricColor.toLowerCase() === preset.color.toLowerCase()
-                  ? 'border-[#DB0B2B] scale-105 shadow-xs'
-                  : 'border-[#2d2d2d] hover:border-[#555555]'
+                  ? 'border-[#DB0B2B] scale-105'
+                  : 'border-white/10 hover:border-white/20'
               }`}
               style={{ backgroundColor: preset.color }}
             />
@@ -59,7 +59,7 @@ export const MaterialPanel: React.FC = () => {
 
       {/* 2. Surface Properties using custom ScrubSliders */}
       <div className="space-y-2">
-        <div className="text-[11px] font-bold text-[#cccccc] uppercase tracking-wider pt-0.5 font-sora">
+        <div className="text-[11px] font-bold text-[#CCCCCC] uppercase tracking-wider pt-0.5 font-sora">
           SURFACE PROPERTIES
         </div>
 

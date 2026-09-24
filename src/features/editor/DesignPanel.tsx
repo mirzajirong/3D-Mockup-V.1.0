@@ -61,7 +61,7 @@ export const DesignPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 text-white overflow-y-auto max-h-full font-geist">
+    <div className="flex flex-col gap-3 p-4 text-[#FFFFFF] overflow-y-auto max-h-full font-geist">
       {/* 1. UV Map Preview Canvas with Interactive Handles & Guide Button */}
       <UVCanvasPreview />
 
@@ -72,21 +72,21 @@ export const DesignPanel: React.FC = () => {
           type="button"
           onClick={handleFitDesign}
           disabled={!selectedLayerId}
-          className="h-9 px-3 flex items-center justify-center gap-2 rounded-[4px] bg-white/5 hover:bg-white/10 active:bg-white/5 border border-white/10 hover:border-white/20 text-xs font-medium text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur-md"
+          className="h-9 px-3 flex items-center justify-center gap-2 rounded-[4px] bg-[#141414] hover:bg-[#181818] active:bg-[#141414] border border-white/10 hover:border-white/15 text-xs font-medium text-[#FFFFFF] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           title="Fit Design into Upper Chest Area"
         >
-          <ArrowsPointingOutIcon className="w-3.5 h-3.5 text-white" />
-          <span>Fit Design</span>
+          <ArrowsPointingOutIcon className="w-3.5 h-3.5 text-[#FFFFFF]" />
+          <span>Fit</span>
         </button>
 
         <button
           id="upload-design-btn"
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="h-9 px-3 flex items-center justify-center gap-2 rounded-[4px] bg-white/5 hover:bg-white/10 active:bg-white/5 border border-white/10 hover:border-white/20 text-xs font-medium text-white transition-colors cursor-pointer backdrop-blur-md"
+          className="h-9 px-3 flex items-center justify-center gap-2 rounded-[4px] bg-[#141414] hover:bg-[#181818] active:bg-[#141414] border border-white/10 hover:border-white/15 text-xs font-medium text-[#FFFFFF] transition-colors cursor-pointer"
         >
-          <ArrowUpTrayIcon className="w-3.5 h-3.5 text-white" />
-          <span>Upload Design</span>
+          <ArrowUpTrayIcon className="w-3.5 h-3.5 text-[#FFFFFF]" />
+          <span>Design</span>
         </button>
       </div>
 
@@ -100,13 +100,13 @@ export const DesignPanel: React.FC = () => {
 
       {/* 4. LAYERS (N) SECTION */}
       <div className="space-y-2 pt-1">
-        <div className="text-[11px] font-bold text-white uppercase tracking-wider font-sora">
+        <div className="text-[11px] font-bold text-[#FFFFFF] uppercase tracking-wider font-sora">
           LAYERS ({layers.length})
         </div>
 
         {/* Layer list */}
         {layers.length === 0 ? (
-          <div className="py-6 text-center text-xs text-[#888888] border border-dashed border-white/15 rounded-[4px] bg-black/20 backdrop-blur-md">
+          <div className="py-6 text-center text-xs text-[#888888] border border-dashed border-white/10 rounded-[4px] bg-[#141414]">
             No design layers added. Click Upload Design above.
           </div>
         ) : (
@@ -117,22 +117,22 @@ export const DesignPanel: React.FC = () => {
                 <div
                   key={layer.id}
                   onClick={() => selectLayer(layer.id)}
-                  className={`flex items-center justify-between p-2 rounded-[4px] border transition-colors cursor-pointer backdrop-blur-md ${
+                  className={`flex items-center justify-between p-2 rounded-[4px] border transition-colors cursor-pointer ${
                     isSelected
-                      ? 'bg-white/15 border-white/25 shadow-xs'
-                      : 'bg-black/35 hover:bg-white/5 border-white/10'
+                      ? 'bg-[#1E1E1E] border-[#DB0B2B]'
+                      : 'bg-[#141414] hover:bg-[#181818] border-white/10'
                   }`}
                 >
                   {/* Left: Thumbnail */}
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className="w-8 h-8 rounded-[2px] bg-[#0c0c0c] border border-[#2a2a2a] flex items-center justify-center overflow-hidden shrink-0 p-0.5">
+                    <div className="w-8 h-8 rounded-[2px] bg-[#0A0A0A] border border-white/10 flex items-center justify-center overflow-hidden shrink-0 p-0.5">
                       <img
                         src={layer.src}
                         alt={layer.name}
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <span className="text-xs font-medium text-white truncate max-w-[120px]">
+                    <span className="text-xs font-medium text-[#FFFFFF] truncate max-w-[120px]">
                       {layer.name}
                     </span>
                   </div>
@@ -145,7 +145,7 @@ export const DesignPanel: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => moveLayerUp(layer.id)}
-                      className="p-1 hover:text-white rounded-[2px] transition-colors cursor-pointer"
+                      className="p-1 hover:text-[#FFFFFF] rounded-[2px] transition-colors cursor-pointer"
                       title="Move Up"
                     >
                       <ChevronUpIcon className="w-4 h-4" />
@@ -154,7 +154,7 @@ export const DesignPanel: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => moveLayerDown(layer.id)}
-                      className="p-1 hover:text-white rounded-[2px] transition-colors cursor-pointer"
+                      className="p-1 hover:text-[#FFFFFF] rounded-[2px] transition-colors cursor-pointer"
                       title="Move Down"
                     >
                       <ChevronDownIcon className="w-4 h-4" />
@@ -165,7 +165,7 @@ export const DesignPanel: React.FC = () => {
                       onClick={() =>
                         updateLayer(layer.id, { locked: !layer.locked })
                       }
-                      className="p-1 hover:text-white rounded-[2px] transition-colors cursor-pointer"
+                      className="p-1 hover:text-[#FFFFFF] rounded-[2px] transition-colors cursor-pointer"
                       title={layer.locked ? 'Unlock layer' : 'Lock layer'}
                     >
                       {layer.locked ? (
@@ -180,7 +180,7 @@ export const DesignPanel: React.FC = () => {
                       onClick={() =>
                         updateLayer(layer.id, { visible: !layer.visible })
                       }
-                      className="p-1 hover:text-white rounded-[2px] transition-colors cursor-pointer"
+                      className="p-1 hover:text-[#FFFFFF] rounded-[2px] transition-colors cursor-pointer"
                       title={layer.visible ? 'Hide layer' : 'Show layer'}
                     >
                       {layer.visible ? (
@@ -232,11 +232,11 @@ export const DesignPanel: React.FC = () => {
               />
             </div>
 
-            {/* Row 2: Posision X & Posision Y */}
+            {/* Row 2: Position X & Position Y */}
             <div className="grid grid-cols-2 gap-2">
               <ScrubSlider
                 id="layer-pos-x-slider"
-                label="Posision X"
+                label="Position X"
                 value={parseFloat(((selectedLayer.x + 1) / 2).toFixed(2))}
                 min={0.0}
                 max={1.0}
@@ -249,7 +249,7 @@ export const DesignPanel: React.FC = () => {
               />
               <ScrubSlider
                 id="layer-pos-y-slider"
-                label="Posision Y"
+                label="Position Y"
                 value={parseFloat(((selectedLayer.y + 1) / 2).toFixed(2))}
                 min={0.0}
                 max={1.0}

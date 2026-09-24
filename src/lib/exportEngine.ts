@@ -19,17 +19,105 @@ export function cancelCurrentExport(): void {
   }
 }
 
+export interface ImageExportOptions {
+  sourceCanvas?: HTMLCanvasElement | null;
+  format: 'png' | 'jpeg';
+  ratio: AspectRatio;
+  transparent: boolean;
+  sceneSettings?: SceneSettings;
+  modelType?: ModelType;
+  material?: MaterialSettings;
+  cameraPreset?: CameraPreset;
+  colorTextureCanvas?: HTMLCanvasElement | null;
+  bumpTextureCanvas?: HTMLCanvasElement | null;
+  timelineTime?: number;
+  animationEasing?: AnimationEasing;
+  quality?: number;
+}
+
 /**
- * Captures image with desired aspect ratio and pristine quality.
+ * Captures high-resolution image with desired aspect ratio and pristine quality,
+ * matching 3D viewport lighting, materials, camera, and background.
  */
 export async function exportImage(
-  sourceCanvas: HTMLCanvasElement,
-  format: 'png' | 'jpeg',
-  ratio: AspectRatio,
-  transparent: boolean,
-  quality = 0.95
+  optionsOrCanvas: ImageExportOptions | HTMLCanvasElement,
+  formatParam?: 'png' | 'jpeg',
+  ratioParam?: AspectRatio,
+  transparentParam?: boolean,
+  sceneSettingsParam?: SceneSettings,
+  qualityParam = 0.95
 ): Promise<void> {
-  const { width: targetW, height: targetH } = computeExportDimensions(ratio, 2048);
+  const isOptionsObj = !(optionsOrCanvas instanceof HTMLCanvasElement);
+  const opts: ImageExportOptions = isOptionsObj
+    ? (optionsOrCanvas as ImageExportOptions)
+    : {
+        sourceCanvas: optionsOrCanvas as HTMLCanvasElement,
+        format: formatParam || 'png',
+        ratio: ratioParam || '16:9',
+        transparent: transparentParam || false,
+        sceneSettings: sceneSettingsParam,
+        quality: qualityParam,
+      };
+
+  const { format, ratio, transparent, sceneSettings, quality = 0.95 } = opts;
+  const { width: targetW, height: targetH } = computeExportDimensions(ratio, 2048, false);
+
+  // 1. Primary High-Fidelity Path: Native 3D Offscreen WebGL Render
+  if (opts.modelType && opts.material && sceneSettings) {
+    try {
+      const offscreen = await createOffscreenScene({
+        width: targetW,
+        height: targetH,
+        modelType: opts.modelType,
+        material: opts.material,
+        sceneSettings,
+        cameraPreset: opts.cameraPreset || 'front',
+        colorTextureImage: opts.colorTextureCanvas,
+        bumpTextureImage: opts.bumpTextureCanvas,
+        transparent,
+      });
+
+      // Calculate turntable offset matching current viewport timeline
+      const t = ((opts.timelineTime ?? 0) % 10) / 10;
+      let eased = t;
+      if (opts.animationEasing === 'in') eased = t * t;
+      else if (opts.animationEasing === 'out') eased = t * (2 - t);
+      else if (opts.animationEasing === 'in-out') eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+      const rotationRad = eased * Math.PI * 2;
+
+      offscreen.renderFrame(rotationRad);
+
+      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      let dataUrl: string;
+      if ('toDataURL' in offscreen.canvas) {
+        dataUrl = (offscreen.canvas as HTMLCanvasElement).toDataURL(mime, quality);
+      } else {
+        const bmp = await createImageBitmap(offscreen.canvas as OffscreenCanvas);
+        const tempC = document.createElement('canvas');
+        tempC.width = targetW;
+        tempC.height = targetH;
+        const tempCtx = tempC.getContext('2d')!;
+        tempCtx.drawImage(bmp, 0, 0);
+        dataUrl = tempC.toDataURL(mime, quality);
+      }
+
+      const link = document.createElement('a');
+      link.download = `EditorSuite_${ratio.replace(':', 'x')}_${Date.now()}.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      link.href = dataUrl;
+      link.click();
+      offscreen.dispose();
+      return;
+    } catch (err) {
+      console.warn('Native 3D offscreen image render failed, using fallback:', err);
+    }
+  }
+
+  // 2. Fallback Path: Precise 2D Compositing of sourceCanvas with exact viewport background
+  const sourceCanvas = opts.sourceCanvas;
+  if (!sourceCanvas) {
+    throw new Error('No canvas available for snapshot export.');
+  }
+
   const srcW = sourceCanvas.width;
   const srcH = sourceCanvas.height;
 
@@ -41,12 +129,80 @@ export async function exportImage(
 
   // Fill background if not transparent or if JPEG
   if (!transparent || format === 'jpeg') {
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, targetW, targetH);
+    if (sceneSettings) {
+      if (sceneSettings.backgroundType === 'solid') {
+        ctx.fillStyle = sceneSettings.backgroundColor || '#0c0c0c';
+        ctx.fillRect(0, 0, targetW, targetH);
+      } else if (sceneSettings.backgroundType === 'gradient') {
+        const rad = ((sceneSettings.gradientAngle ?? 135) * Math.PI) / 180;
+        const dx = Math.sin(rad);
+        const dy = -Math.cos(rad);
+        const length = Math.sqrt(targetW * targetW + targetH * targetH) / 2;
+        const cx = targetW / 2;
+        const cy = targetH / 2;
+        const grad = ctx.createLinearGradient(
+          cx - dx * length,
+          cy - dy * length,
+          cx + dx * length,
+          cy + dy * length
+        );
+        grad.addColorStop(0, sceneSettings.gradientColor1 || '#2a2a2a');
+        grad.addColorStop(1, sceneSettings.gradientColor2 || '#080808');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, targetW, targetH);
+      } else if (sceneSettings.backgroundType === 'checkerboard') {
+        const squareSize = 32;
+        ctx.fillStyle = '#0c0c0c';
+        ctx.fillRect(0, 0, targetW, targetH);
+        ctx.fillStyle = '#181818';
+        for (let y = 0; y < targetH; y += squareSize) {
+          for (let x = 0; x < targetW; x += squareSize) {
+            if ((Math.floor(x / squareSize) + Math.floor(y / squareSize)) % 2 === 0) {
+              ctx.fillRect(x, y, squareSize, squareSize);
+            }
+          }
+        }
+      } else if (sceneSettings.backgroundType === 'image' && sceneSettings.backgroundImageUrl) {
+        try {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.src = sceneSettings.backgroundImageUrl;
+          await new Promise((res) => {
+            img.onload = res;
+            img.onerror = res;
+          });
+          const imgAspect = (img.width || 1) / (img.height || 1);
+          const targetAspect = targetW / targetH;
+          let dw = targetW;
+          let dh = targetH;
+          let ox = 0;
+          let oy = 0;
+          if (imgAspect > targetAspect) {
+            dh = targetH;
+            dw = targetH * imgAspect;
+            ox = (targetW - dw) / 2;
+          } else {
+            dw = targetW;
+            dh = targetW / imgAspect;
+            oy = (targetH - dh) / 2;
+          }
+          ctx.drawImage(img, ox, oy, dw, dh);
+        } catch {
+          ctx.fillStyle = '#0c0c0c';
+          ctx.fillRect(0, 0, targetW, targetH);
+        }
+      } else {
+        ctx.fillStyle = '#0c0c0c';
+        ctx.fillRect(0, 0, targetW, targetH);
+      }
+    } else {
+      ctx.fillStyle = '#0c0c0c';
+      ctx.fillRect(0, 0, targetW, targetH);
+    }
   }
 
   // Draw scaled & centered snapshot
-  const scale = Math.min(targetW / srcW, targetH / srcH) * 1.05;
+  const scale = Math.min(targetW / srcW, targetH / srcH);
   const drawW = srcW * scale;
   const drawH = srcH * scale;
   const offsetX = (targetW - drawW) / 2;
@@ -110,7 +266,7 @@ export async function exportTurntableVideo(options: VideoExportOptions): Promise
   currentAbortController = abortController;
   const signal = abortController.signal;
 
-  const { width, height } = computeExportDimensions(ratio, 1920);
+  const { width, height } = computeExportDimensions(ratio, 1920, true);
   const totalFrames = Math.max(30, Math.round(durationSeconds * fps));
 
   onProgress({
