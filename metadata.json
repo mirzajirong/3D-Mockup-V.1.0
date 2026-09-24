@@ -1,0 +1,6 @@
+{
+  "name": "Editor Suite Studio",
+  "description": "3D Mockup Generator for professional designers and editors - real-time UV mapping, fabric customization, and 360° video export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
