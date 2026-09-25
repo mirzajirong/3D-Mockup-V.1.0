@@ -5,10 +5,12 @@ import {
   MaterialSettings, 
   SceneSettings, 
   CameraPreset, 
-  AspectRatio 
+  AspectRatio,
+  ViewportCameraState
 } from '../types';
 import { createJerseyGeometry } from '../canvas/JerseyMesh';
 import { PRESET_COORDINATES } from '../canvas/CameraController';
+import { getCachedGLTFScene } from '../canvas/ONeckModel';
 import { APP_CONFIG } from '../config/constants';
 
 let cachedGLTFBuffer: ArrayBuffer | null = null;
@@ -79,6 +81,7 @@ export async function createOffscreenScene(params: {
   colorTextureImage?: HTMLCanvasElement | ImageBitmap | null;
   bumpTextureImage?: HTMLCanvasElement | ImageBitmap | null;
   transparent?: boolean;
+  viewportCamera?: ViewportCameraState | null;
 }): Promise<OffscreenSceneInstance> {
   const {
     width,
@@ -90,6 +93,7 @@ export async function createOffscreenScene(params: {
     colorTextureImage,
     bumpTextureImage,
     transparent = false,
+    viewportCamera,
   } = params;
 
   // 1. Create Canvas
@@ -98,7 +102,7 @@ export async function createOffscreenScene(params: {
       ? new OffscreenCanvas(width, height)
       : Object.assign(document.createElement('canvas'), { width, height });
 
-  // 2. Create WebGLRenderer
+  // 2. Create WebGLRenderer with exact viewport color management and tone mapping
   const renderer = new THREE.WebGLRenderer({
     canvas: canvas as any,
     antialias: true,
@@ -110,6 +114,9 @@ export async function createOffscreenScene(params: {
   renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
 
   const threeScene = new THREE.Scene();
 
@@ -131,6 +138,7 @@ export async function createOffscreenScene(params: {
       ctx.fillRect(0, 0, 28, 28);
       ctx.fillRect(28, 28, 28, 28);
       const bgTex = new THREE.CanvasTexture(bgCanvas);
+      bgTex.colorSpace = THREE.SRGBColorSpace;
       bgTex.wrapS = THREE.RepeatWrapping;
       bgTex.wrapT = THREE.RepeatWrapping;
       bgTex.repeat.set(width / 56, height / 56);
@@ -158,7 +166,9 @@ export async function createOffscreenScene(params: {
       grad.addColorStop(1, sceneSettings.gradientColor2 || '#080808');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
-      threeScene.background = new THREE.CanvasTexture(bgCanvas);
+      const bgTex = new THREE.CanvasTexture(bgCanvas);
+      bgTex.colorSpace = THREE.SRGBColorSpace;
+      threeScene.background = bgTex;
     }
   } else if (sceneSettings.backgroundType === 'image' && sceneSettings.backgroundImageUrl) {
     try {
@@ -190,7 +200,9 @@ export async function createOffscreenScene(params: {
           oy = (height - dh) / 2;
         }
         ctx.drawImage(img, ox, oy, dw, dh);
-        threeScene.background = new THREE.CanvasTexture(bgCanvas);
+        const bgTex = new THREE.CanvasTexture(bgCanvas);
+        bgTex.colorSpace = THREE.SRGBColorSpace;
+        threeScene.background = bgTex;
       }
     } catch {
       threeScene.background = new THREE.Color('#0c0c0c');
@@ -199,19 +211,42 @@ export async function createOffscreenScene(params: {
     threeScene.background = new THREE.Color('#0c0c0c');
   }
 
-  // 4. Camera Setup
+  // 4. Camera Setup with Live Viewport Synchronization
+  const targetAspect = width / height;
   const camera = new THREE.PerspectiveCamera(
-    sceneSettings.cameraFov || 45,
-    width / height,
+    viewportCamera?.fov || sceneSettings.cameraFov || 45,
+    targetAspect,
     0.1,
     100
   );
-  const coords = PRESET_COORDINATES[cameraPreset] || PRESET_COORDINATES.front;
-  const camX = sceneSettings.cameraX ?? coords[0];
-  const camY = sceneSettings.cameraY ?? coords[1];
-  const camZ = sceneSettings.cameraZ ?? coords[2];
-  camera.position.set(camX, camY, camZ);
-  camera.lookAt(0, -0.1, 0);
+
+  if (viewportCamera) {
+    // Copy the exact 3D orientation and position from the active 3D viewport
+    camera.position.set(...viewportCamera.position);
+    camera.quaternion.set(...viewportCamera.quaternion);
+    camera.fov = viewportCamera.fov || sceneSettings.cameraFov || 45;
+    camera.zoom = viewportCamera.zoom || 1;
+
+    // Aspect ratio framing compensation:
+    // If exporting in vertical or square aspect ratio (e.g. 9:16, 4:5, 1:1),
+    // zoom out slightly along line of sight so the garment and sleeves are not horizontally clipped
+    if (targetAspect < 1.0) {
+      const fitFactor = Math.min(1.4, Math.max(1.05, 0.95 / Math.sqrt(targetAspect)));
+      const targetVec = viewportCamera.target
+        ? new THREE.Vector3(...viewportCamera.target)
+        : new THREE.Vector3(0, -0.1, 0);
+      const dir = new THREE.Vector3().subVectors(camera.position, targetVec);
+      camera.position.copy(targetVec).addScaledVector(dir, fitFactor);
+    }
+    camera.updateProjectionMatrix();
+  } else {
+    const coords = PRESET_COORDINATES[cameraPreset] || PRESET_COORDINATES.front;
+    const camX = sceneSettings.cameraX ?? coords[0];
+    const camY = sceneSettings.cameraY ?? coords[1];
+    const camZ = sceneSettings.cameraZ ?? coords[2];
+    camera.position.set(camX, camY, camZ);
+    camera.lookAt(0, -0.1, 0);
+  }
 
   // 5. Studio Lighting exactly matching StudioLighting.tsx in 3D viewport
   const { lightingPreset, lightIntensity, lightAngle, showShadow, shadowType, shadowBlur } = sceneSettings;
@@ -365,19 +400,26 @@ export async function createOffscreenScene(params: {
     threeScene.add(shadowMesh);
   }
 
-  // 8. Textures from Canvas / ImageBitmap
+  // 8. Textures from Canvas / ImageBitmap with correct colorSpace and wrapping
   let colorTexture: THREE.Texture | null = null;
   if (colorTextureImage) {
     colorTexture = new THREE.Texture(colorTextureImage);
-    colorTexture.needsUpdate = true;
+    colorTexture.colorSpace = THREE.SRGBColorSpace;
+    colorTexture.wrapS = THREE.RepeatWrapping;
+    colorTexture.wrapT = THREE.RepeatWrapping;
+    colorTexture.anisotropy = 8;
     colorTexture.flipY = false;
+    colorTexture.needsUpdate = true;
   }
 
   let bumpTexture: THREE.Texture | null = null;
   if (bumpTextureImage) {
     bumpTexture = new THREE.Texture(bumpTextureImage);
-    bumpTexture.needsUpdate = true;
+    bumpTexture.wrapS = THREE.RepeatWrapping;
+    bumpTexture.wrapT = THREE.RepeatWrapping;
+    bumpTexture.repeat.set(16, 16);
     bumpTexture.flipY = false;
+    bumpTexture.needsUpdate = true;
   }
 
   // 9. Model Construction
@@ -393,32 +435,49 @@ export async function createOffscreenScene(params: {
 
   let modelLoaded = false;
   if (modelType === 'o-neck') {
-    const buffer = await getGLTFBuffer();
-    if (buffer) {
-      try {
-        const loader = new GLTFLoader();
-        const gltf = await loader.parseAsync(buffer, '');
-        const cloned = gltf.scene.clone(true);
-        cloned.traverse((child) => {
-          if ((child as THREE.Mesh).isMesh) {
-            const mesh = child as THREE.Mesh;
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            const mat = new THREE.MeshStandardMaterial({
-              roughness: material.roughness,
-              metalness: material.metallic,
-              map: colorTexture || null,
-              bumpMap: bumpTexture || null,
-              bumpScale: material.normalIntensity * 0.04,
-            });
-            mesh.material = mat;
-          }
-        });
-        modelGroup.add(cloned);
-        modelLoaded = true;
-      } catch (err) {
-        console.warn('Offscreen GLTF parse error, falling back to geometry:', err);
+    // 1. Try to use the already-parsed 3D scene from the live 3D viewport (instant & 100% parity)
+    const liveCachedScene = getCachedGLTFScene();
+    let sourceScene: THREE.Group | null = null;
+
+    if (liveCachedScene) {
+      sourceScene = liveCachedScene;
+    } else {
+      const buffer = await getGLTFBuffer();
+      if (buffer) {
+        try {
+          const loader = new GLTFLoader();
+          const gltf = await loader.parseAsync(buffer, '');
+          sourceScene = gltf.scene;
+        } catch (err) {
+          console.warn('Offscreen GLTF parse error, falling back to geometry:', err);
+        }
       }
+    }
+
+    if (sourceScene) {
+      const cloned = sourceScene.clone(true);
+      cloned.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          const mat = (Array.isArray(mesh.material) ? mesh.material[0] : mesh.material) as THREE.MeshStandardMaterial || new THREE.MeshStandardMaterial();
+          mat.roughness = material.roughness;
+          mat.metalness = material.metallic;
+          mat.side = THREE.DoubleSide; // Prevents backfaces, collar & cuffs from becoming transparent/black
+          if (colorTexture) {
+            mat.map = colorTexture;
+          }
+          if (bumpTexture) {
+            mat.bumpMap = bumpTexture;
+            mat.bumpScale = material.normalIntensity * 0.04;
+          }
+          mat.needsUpdate = true;
+          mesh.material = mat;
+        }
+      });
+      modelGroup.add(cloned);
+      modelLoaded = true;
     }
   }
 

@@ -34,6 +34,7 @@ export const ExportModal: React.FC = () => {
   const showUVGuide = useEditorStore((s) => s.showUVGuide);
   const exportProgress = useEditorStore((s) => s.exportProgress);
   const setExportProgress = useEditorStore((s) => s.setExportProgress);
+  const viewportCameraState = useEditorStore((s) => s.viewportCameraState);
 
   const [activeTab, setActiveTab] = useState<'VIDEO' | 'IMAGES'>('VIDEO');
   const [imageFormat, setImageFormat] = useState<'png' | 'jpeg'>('png');
@@ -71,7 +72,8 @@ export const ExportModal: React.FC = () => {
 
       try {
         const compositor = new TextureCompositor(2048, 2048);
-        await compositor.compose(material, layers, showUVGuide);
+        // Never bake UV guide wires onto exported assets
+        await compositor.compose(material, layers, false);
 
         await exportImage({
           sourceCanvas: rendererCanvas,
@@ -86,6 +88,7 @@ export const ExportModal: React.FC = () => {
           bumpTextureCanvas: compositor.getBumpCanvas(),
           timelineTime,
           animationEasing,
+          viewportCamera: viewportCameraState,
         });
 
         setExportProgress({
@@ -111,7 +114,8 @@ export const ExportModal: React.FC = () => {
         });
 
         const compositor = new TextureCompositor(2048, 2048);
-        await compositor.compose(material, layers, showUVGuide);
+        // Never bake UV guide wires onto exported assets
+        await compositor.compose(material, layers, false);
 
         await exportTurntableVideo({
           format: videoFormat,
@@ -127,6 +131,7 @@ export const ExportModal: React.FC = () => {
           transparent: transparentBg,
           animationEasing,
           sourceCanvasFallback: rendererCanvas,
+          viewportCamera: viewportCameraState,
           onProgress: (progress) => {
             setExportProgress(progress);
           },

@@ -13,6 +13,7 @@ import {
   ViewportInteractionMode,
   AnimationEasing,
   AnimationFps,
+  ViewportCameraState,
 } from '../types';
 import { sampleDesigns } from '../assets/sampleTextures';
 
@@ -98,6 +99,10 @@ interface EditorState {
   // 3D Canvas Reference hook trigger
   rendererCanvas: HTMLCanvasElement | null;
   setRendererCanvas: (canvas: HTMLCanvasElement | null) => void;
+
+  // Active Viewport Camera state tracking for exact export parity
+  viewportCameraState: ViewportCameraState | null;
+  setViewportCameraState: (cam: ViewportCameraState | null) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -343,4 +348,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   rendererCanvas: null,
   setRendererCanvas: (canvas) => set({ rendererCanvas: canvas }),
+
+  viewportCameraState: null,
+  setViewportCameraState: (cam) => set({ viewportCameraState: cam }),
 }));

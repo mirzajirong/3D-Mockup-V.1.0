@@ -1,5 +1,5 @@
 import React, { Suspense, useRef, useEffect, useState, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useEditorStore } from '../store/editorStore';
@@ -28,6 +28,32 @@ const ModelLoadingFallback: React.FC = () => {
   );
 };
 
+// Live tracking of the viewport camera for 100% exact export framing parity
+const ViewportCameraTracker: React.FC<{ controlsRef: React.RefObject<any> }> = ({ controlsRef }) => {
+  const { camera } = useThree();
+  const setViewportCameraState = useEditorStore((s) => s.setViewportCameraState);
+
+  useFrame(() => {
+    if (camera) {
+      const pers = camera as THREE.PerspectiveCamera;
+      const target = controlsRef.current?.target
+        ? [controlsRef.current.target.x, controlsRef.current.target.y, controlsRef.current.target.z]
+        : [0, -0.1, 0];
+
+      setViewportCameraState({
+        position: [pers.position.x, pers.position.y, pers.position.z],
+        quaternion: [pers.quaternion.x, pers.quaternion.y, pers.quaternion.z, pers.quaternion.w],
+        target: target as [number, number, number],
+        fov: pers.fov,
+        zoom: pers.zoom,
+        aspect: pers.aspect,
+      });
+    }
+  });
+
+  return null;
+};
+
 // Scene internals
 const SceneContent: React.FC<{
   colorTexture: THREE.CanvasTexture | null;
@@ -43,6 +69,7 @@ const SceneContent: React.FC<{
 
   return (
     <>
+      <ViewportCameraTracker controlsRef={controlsRef} />
       <OrbitControls
         ref={controlsRef}
         makeDefault
@@ -181,23 +208,37 @@ export const Viewer3DCanvas: React.FC = () => {
         `,
         backgroundSize: '28px 28px',
         backgroundPosition: '0 0, 0 14px, 14px -14px, -14px 0px',
+        backgroundRepeat: 'repeat',
       };
     }
     if (scene.backgroundType === 'solid') {
-      return { backgroundColor: scene.backgroundColor };
+      return {
+        backgroundColor: scene.backgroundColor,
+        backgroundImage: 'none',
+      };
     }
     if (scene.backgroundType === 'gradient') {
-      return { background: scene.backgroundGradient };
+      return {
+        backgroundColor: 'transparent',
+        backgroundImage: scene.backgroundGradient,
+        backgroundSize: 'auto',
+        backgroundPosition: '0% 0%',
+        backgroundRepeat: 'no-repeat',
+      };
     }
     if (scene.backgroundType === 'image') {
       return {
-        backgroundImage: scene.backgroundImageUrl ? `url(${scene.backgroundImageUrl})` : undefined,
+        backgroundColor: '#0c0c0c',
+        backgroundImage: scene.backgroundImageUrl ? `url(${scene.backgroundImageUrl})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundColor: '#0c0c0c',
+        backgroundRepeat: 'no-repeat',
       };
     }
-    return { backgroundColor: '#000000' };
+    return {
+      backgroundColor: '#000000',
+      backgroundImage: 'none',
+    };
   }, [scene.backgroundType, scene.backgroundColor, scene.backgroundGradient, scene.backgroundImageUrl]);
 
   return (

@@ -26,6 +26,11 @@ try {
   console.warn('Preload notice:', e);
 }
 
+let cachedGLTFScene: THREE.Group | null = null;
+export function getCachedGLTFScene(): THREE.Group | null {
+  return cachedGLTFScene;
+}
+
 const GLBViewer: React.FC<ONeckModelProps> = ({
   colorTexture,
   bumpTexture,
@@ -39,6 +44,12 @@ const GLBViewer: React.FC<ONeckModelProps> = ({
 }) => {
   const groupRef = useRef<THREE.Group>(null);
   const gltf = useGLTF(APP_CONFIG.assets.modelONeck);
+
+  useEffect(() => {
+    if (gltf?.scene) {
+      cachedGLTFScene = gltf.scene;
+    }
+  }, [gltf]);
 
   // Clone scene so multiple instances don't collide
   const clonedScene = useMemo(() => {
@@ -63,6 +74,7 @@ const GLBViewer: React.FC<ONeckModelProps> = ({
           if (mat) {
             mat.roughness = materialSettings.roughness;
             mat.metalness = materialSettings.metallic;
+            mat.side = THREE.DoubleSide;
 
             if (colorTexture) {
               mat.map = colorTexture;

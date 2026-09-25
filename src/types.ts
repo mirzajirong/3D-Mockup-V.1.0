@@ -85,6 +85,15 @@ export interface SceneSettings {
   cameraZ: number;
 }
 
+export interface ViewportCameraState {
+  position: [number, number, number];
+  quaternion: [number, number, number, number];
+  target: [number, number, number];
+  fov: number;
+  zoom: number;
+  aspect: number;
+}
+
 export type SubscriptionPlan = 'free' | 'pro';
 
 export interface UserProfile {

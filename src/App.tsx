@@ -52,23 +52,37 @@ export default function App() {
         `,
         backgroundSize: '28px 28px',
         backgroundPosition: '0 0, 0 14px, 14px -14px, -14px 0px',
+        backgroundRepeat: 'repeat',
       };
     }
     if (scene.backgroundType === 'solid') {
-      return { backgroundColor: scene.backgroundColor };
+      return {
+        backgroundColor: scene.backgroundColor,
+        backgroundImage: 'none',
+      };
     }
     if (scene.backgroundType === 'gradient') {
-      return { background: scene.backgroundGradient };
+      return {
+        backgroundColor: 'transparent',
+        backgroundImage: scene.backgroundGradient,
+        backgroundSize: 'auto',
+        backgroundPosition: '0% 0%',
+        backgroundRepeat: 'no-repeat',
+      };
     }
     if (scene.backgroundType === 'image') {
       return {
-        backgroundImage: scene.backgroundImageUrl ? `url(${scene.backgroundImageUrl})` : undefined,
+        backgroundColor: '#0c0c0c',
+        backgroundImage: scene.backgroundImageUrl ? `url(${scene.backgroundImageUrl})` : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        backgroundColor: '#0c0c0c',
+        backgroundRepeat: 'no-repeat',
       };
     }
-    return { backgroundColor: '#000000' };
+    return {
+      backgroundColor: '#000000',
+      backgroundImage: 'none',
+    };
   }, [scene.backgroundType, scene.backgroundColor, scene.backgroundGradient, scene.backgroundImageUrl]);
 
   // Left panel tabs definition

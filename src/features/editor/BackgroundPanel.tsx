@@ -196,7 +196,7 @@ export const BackgroundPanel: React.FC = () => {
             <div
               className="w-full h-14 rounded-[4px] border border-white/15"
               style={{
-                background: `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`,
+                backgroundImage: `linear-gradient(${angle}deg, ${color1} 0%, ${color2} 100%)`,
               }}
             />
 

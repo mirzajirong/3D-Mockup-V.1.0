@@ -6,7 +6,8 @@ import {
   MaterialSettings, 
   SceneSettings, 
   CameraPreset, 
-  AnimationEasing 
+  AnimationEasing,
+  ViewportCameraState
 } from '../types';
 import { createOffscreenScene, computeExportDimensions } from './offscreenScene';
 
@@ -33,6 +34,7 @@ export interface ImageExportOptions {
   timelineTime?: number;
   animationEasing?: AnimationEasing;
   quality?: number;
+  viewportCamera?: ViewportCameraState | null;
 }
 
 /**
@@ -75,6 +77,7 @@ export async function exportImage(
         colorTextureImage: opts.colorTextureCanvas,
         bumpTextureImage: opts.bumpTextureCanvas,
         transparent,
+        viewportCamera: opts.viewportCamera,
       });
 
       // Calculate turntable offset matching current viewport timeline
@@ -233,6 +236,7 @@ export interface VideoExportOptions {
   transparent?: boolean;
   animationEasing?: AnimationEasing;
   sourceCanvasFallback?: HTMLCanvasElement | null;
+  viewportCamera?: ViewportCameraState | null;
   onProgress: (progress: Partial<ExportProgress>) => void;
 }
 
@@ -305,6 +309,7 @@ export async function exportTurntableVideo(options: VideoExportOptions): Promise
       colorTextureImage: colorTextureCanvas,
       bumpTextureImage: bumpTextureCanvas,
       transparent: format === 'webm' && transparent,
+      viewportCamera: options.viewportCamera,
     });
 
     if (signal.aborted) throw new Error('Export cancelled');
